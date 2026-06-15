@@ -410,6 +410,21 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
     setProviderConfig(pid, { models: newModels });
   };
 
+  const handleFetchModels = (pid: ProviderId, models: Array<{ id: string; name: string }>) => {
+    const currentModels = providersConfig[pid]?.models || [];
+    const existingIds = new Set(currentModels.map((m) => m.id));
+    const newModels = models
+      .filter((m) => !existingIds.has(m.id))
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        capabilities: { streaming: true, tools: true, vision: false },
+      }));
+    if (newModels.length > 0) {
+      setProviderConfig(pid, { models: [...currentModels, ...newModels] });
+    }
+  };
+
   const handleAutoSaveModel = () => {
     if (!editingModel) return;
     const { providerId: pid, modelIndex, model } = editingModel;
@@ -1040,6 +1055,7 @@ export function SettingsDialog({ open, onOpenChange, initialSection }: SettingsD
                   onEditModel={(index) => handleEditModel(selectedProviderId, index)}
                   onDeleteModel={(index) => handleDeleteModel(selectedProviderId, index)}
                   onAddModel={handleAddModel}
+                  onFetchModels={(models) => handleFetchModels(selectedProviderId, models)}
                   onResetToDefault={() => handleResetProvider(selectedProviderId)}
                   isBuiltIn={providersConfig[selectedProviderId]?.isBuiltIn ?? true}
                 />
