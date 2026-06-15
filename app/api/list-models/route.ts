@@ -1,10 +1,7 @@
 import { NextRequest } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
-import {
-  resolveApiKey,
-  resolveBaseUrl,
-} from '@/lib/server/provider-config';
+import { resolveApiKey, resolveBaseUrl } from '@/lib/server/provider-config';
 import { PROVIDERS } from '@/lib/ai/providers';
 import type { ProviderId } from '@/lib/types/provider';
 
@@ -28,9 +25,7 @@ export async function POST(req: NextRequest) {
     const apiKey = resolveApiKey(providerId, clientApiKey);
     const provider = PROVIDERS[providerId as ProviderId];
     const baseUrl =
-      resolveBaseUrl(providerId, clientBaseUrl) ||
-      clientBaseUrl ||
-      provider?.defaultBaseUrl;
+      resolveBaseUrl(providerId, clientBaseUrl) || clientBaseUrl || provider?.defaultBaseUrl;
 
     if (!baseUrl) {
       return apiError('INVALID_REQUEST', 400, 'No base URL configured for this provider');
