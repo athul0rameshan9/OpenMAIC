@@ -1,7 +1,12 @@
 import { NextRequest } from 'next/server';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
-import { resolveApiKey, resolveBaseUrl } from '@/lib/server/provider-config';
+import {
+  isServerConfiguredProvider,
+  resolveApiKey,
+  resolveBaseUrl,
+} from '@/lib/server/provider-config';
+import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
 import { PROVIDERS } from '@/lib/ai/providers';
 import type { ProviderId } from '@/lib/types/provider';
 
@@ -21,11 +26,24 @@ export async function POST(req: NextRequest) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'providerId is required');
     }
 
-    // Resolve credentials (server-managed takes precedence)
-    const apiKey = resolveApiKey(providerId, clientApiKey);
+    // Managed providers are admin-owned: ignore any client-sent key/baseUrl.
+    const isManaged = isServerConfiguredProvider('providers', providerId);
     const provider = PROVIDERS[providerId as ProviderId];
+    const safeClientApiKey = isManaged ? undefined : clientApiKey;
+    const safeClientBaseUrl = isManaged ? undefined : clientBaseUrl;
+
+    if (safeClientBaseUrl) {
+      const ssrfError = await validateUrlForSSRF(safeClientBaseUrl);
+      if (ssrfError) {
+        return apiError('INVALID_URL', 403, ssrfError);
+      }
+    }
+
+    const apiKey = resolveApiKey(providerId, safeClientApiKey);
     const baseUrl =
-      resolveBaseUrl(providerId, clientBaseUrl) || clientBaseUrl || provider?.defaultBaseUrl;
+      resolveBaseUrl(providerId, safeClientBaseUrl) ||
+      safeClientBaseUrl ||
+      provider?.defaultBaseUrl;
 
     if (!baseUrl) {
       return apiError('INVALID_REQUEST', 400, 'No base URL configured for this provider');

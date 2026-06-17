@@ -176,8 +176,8 @@ export function ProviderConfigPanel({
 
       const data = await response.json();
 
-      if (data.success && data.data?.models) {
-        const fetched = data.data.models as Array<{ id: string; name: string }>;
+      if (data.success && data.models) {
+        const fetched = data.models as Array<{ id: string; name: string }>;
         if (fetched.length === 0) {
           setFetchModelsMessage(t('settings.noModelsFound'));
         } else {
