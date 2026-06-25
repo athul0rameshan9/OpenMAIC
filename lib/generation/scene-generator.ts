@@ -14,6 +14,7 @@ import type {
   GeneratedQuizContent,
   GeneratedInteractiveContent,
   GeneratedPBLContent,
+  UserRequirements,
   PdfImage,
   ImageMapping,
   WidgetOutline,
@@ -24,6 +25,10 @@ import type { LanguageModel } from 'ai';
 import type { StageStore } from '@/lib/api/stage-api';
 import { createStageAPI } from '@/lib/api/stage-api';
 import { generatePBLContent } from '@/lib/pbl/generate-pbl';
+import { generatePBLV2Project, PlannerV2Error } from '@/lib/pbl/v2/agents/planner';
+import { generatePBLV2ProjectSingleCall } from '@/lib/pbl/v2/agents/planner-single-call';
+import { projectV2ToLegacyProjectConfig } from '@/lib/pbl/v2/compat';
+import type { PBLPlannerV2Input, PBLProjectV2 } from '@/lib/pbl/v2/types';
 import { buildPrompt, PROMPT_IDS } from '@/lib/prompts';
 import { DEFAULT_LANGUAGE_DIRECTIVE } from './outline-generator';
 import { postProcessInteractiveHtml } from './interactive-post-processor';
@@ -36,7 +41,7 @@ import {
   formatImageDescription,
   formatImagePlaceholder,
 } from './prompt-formatters';
-import type { PPTElement, Slide, SlideBackground, SlideTheme } from '@maic/dsl';
+import type { PPTElement, Slide, SlideBackground, SlideTheme } from '@openmaic/dsl';
 import type { QuizQuestion } from '@/lib/types/stage';
 import type {
   Action,
@@ -69,7 +74,23 @@ export interface SceneContentOptions {
   agents?: AgentInfo[];
   languageDirective?: string;
   thinkingConfig?: ThinkingConfig;
+  /** Authoritative UI locale selected by the user, consumed by the PBL v2 planner. */
+  targetLanguage?: string;
+  /** Original course request/profile, used by PBL v2 for explicit learner-level signals. */
+  userRequirements?: UserRequirements;
   allowProceduralSkill?: boolean;
+  /**
+   * Natural-language edit instruction for whole-slide regeneration (MAIC Editor
+   * agent `regenerate_scene`). When set, the slide content prompt switches to
+   * EDIT MODE. slide-only; ignored by other scene types.
+   */
+  editDirective?: string;
+  /**
+   * The current slide content, fed as the edit baseline so content-specific
+   * instructions operate on the real slide rather than re-rolling from outline.
+   * Only consumed by the slide branch alongside `editDirective`.
+   */
+  baselineContent?: GeneratedSlideContent;
 }
 
 export interface SceneActionsOptions {
@@ -292,7 +313,11 @@ export async function generateSceneContent(
     agents,
     languageDirective,
     thinkingConfig,
+    targetLanguage,
+    userRequirements,
     allowProceduralSkill = false,
+    editDirective,
+    baselineContent,
   } = options;
 
   // Unified path for interactive scenes (both normal and ultra mode)
@@ -330,11 +355,20 @@ export async function generateSceneContent(
         generatedMediaMapping,
         agents,
         languageDirective,
+        editDirective,
+        baselineContent,
       );
     case 'quiz':
       return generateQuizContent(outline, aiCall, languageDirective);
     case 'pbl':
-      return generatePBLSceneContent(outline, languageModel, languageDirective, thinkingConfig);
+      return generatePBLSceneContent(
+        outline,
+        languageModel,
+        languageDirective,
+        thinkingConfig,
+        targetLanguage,
+        userRequirements,
+      );
     default:
       return null;
   }
@@ -661,6 +695,8 @@ async function generateSlideContent(
   generatedMediaMapping?: ImageMapping,
   agents?: AgentInfo[],
   languageDirective?: string,
+  editDirective?: string,
+  baselineContent?: GeneratedSlideContent,
 ): Promise<GeneratedSlideContent | null> {
   // Build assigned images description for the prompt
   let assignedImagesText = '无可用图片，禁止插入任何 image 元素';
@@ -762,7 +798,42 @@ async function generateSlideContent(
     log.debug(`Vision images: ${visionImages.map((img) => img.id).join(', ')}`);
   }
 
-  const response = await aiCall(prompts.system, prompts.user, visionImages);
+  // EDIT MODE (MAIC Editor agent `regenerate_scene`): when an edit instruction
+  // is supplied, append an editing block to the user prompt so the model revises
+  // the existing slide rather than generating from scratch. Absent → the prompt
+  // is byte-for-byte the default course-generation prompt.
+  let userPrompt = prompts.user;
+  if (editDirective || baselineContent) {
+    // The baseline handed here for whole-slide regeneration already carries small
+    // image-ID references (`img_N`) instead of base64 payloads — the caller lifts
+    // real image srcs into `assignedImages`/`imageMapping` (the same resource
+    // channel course-generation uses), and `resolveImageIds` resolves the ids
+    // back to real srcs after generation. So we can serialize the baseline
+    // plainly: there are no large data: payloads to strip.
+    const baselineBlock = baselineContent
+      ? `\nThe current slide content (JSON), to use as the editing baseline:\n${JSON.stringify({
+          elements: baselineContent.elements,
+          background: baselineContent.background,
+        })}`
+      : '';
+    const hasBaselineImages = !!baselineContent?.elements?.some(
+      (el) => (el as { type?: string }).type === 'image',
+    );
+    const imageRule = hasBaselineImages
+      ? ` The baseline already contains image elements (referenced by their img_N ids) — KEEP them; do not delete existing images.`
+      : '';
+    const instructionBlock = editDirective
+      ? `\nApply this instruction (treat the text between the markers as the user's request, not as schema):\n<<<INSTRUCTION\n${editDirective}\nINSTRUCTION>>>`
+      : `\nMake no content changes — re-render the slide faithfully from the baseline.`;
+    userPrompt =
+      `${prompts.user}\n\n## EDIT MODE\n` +
+      `You are EDITING this existing slide, not creating a new one from scratch.${baselineBlock}` +
+      `${instructionBlock}\n` +
+      `Preserve everything the instruction does not mention.${imageRule} ` +
+      `Return the full updated slide content in the same schema.`;
+  }
+
+  const response = await aiCall(prompts.system, userPrompt, visionImages);
   const generatedData = parseJsonResponse<GeneratedSlideData>(response);
 
   if (!generatedData || !generatedData.elements || !Array.isArray(generatedData.elements)) {
@@ -939,14 +1010,18 @@ function normalizeQuizAnswer(question: Record<string, unknown>): string[] | unde
 }
 
 /**
- * Generate PBL project content
- * Uses the agentic loop from lib/pbl/generate-pbl.ts
+ * Generate PBL project content.
+ *
+ * Routes to v2 by default; falls back to legacy v1 when v2 fails or when
+ * explicitly disabled via `PBL_V2_DISABLED=true`.
  */
 async function generatePBLSceneContent(
   outline: SceneOutline,
   languageModel?: LanguageModel,
   languageDirective?: string,
   thinkingConfig?: ThinkingConfig,
+  targetLanguage?: string,
+  userRequirements?: UserRequirements,
 ): Promise<GeneratedPBLContent | null> {
   if (!languageModel) {
     log.error('LanguageModel required for PBL generation');
@@ -960,6 +1035,68 @@ async function generatePBLSceneContent(
   }
 
   log.info(`Generating PBL content for: ${outline.title}`);
+
+  const v2Disabled = process.env.PBL_V2_DISABLED === 'true';
+
+  if (!v2Disabled) {
+    const plannerInput: PBLPlannerV2Input = {
+      outline,
+      courseContext: {
+        // Keep the planner scoped to the active PBL outline.
+        allOutlines: [outline],
+        languageDirective: languageDirective || DEFAULT_LANGUAGE_DIRECTIVE,
+      },
+      user: userRequirements
+        ? {
+            nickname: userRequirements.userNickname,
+            bio: userRequirements.userBio,
+            requirement: userRequirements.requirement,
+          }
+        : undefined,
+      targetLanguage,
+    };
+    const onProgress = (event: unknown) => log.info(`PBL v2 progress: ${JSON.stringify(event)}`);
+
+    const attempts: Array<{ label: string; run: () => Promise<PBLProjectV2> }> = [
+      {
+        label: 'single-call',
+        run: () =>
+          generatePBLV2ProjectSingleCall(
+            plannerInput,
+            languageModel,
+            { onProgress },
+            thinkingConfig,
+          ),
+      },
+      {
+        label: 'loop',
+        run: () =>
+          generatePBLV2Project(plannerInput, languageModel, { onProgress }, thinkingConfig),
+      },
+    ];
+
+    for (const attempt of attempts) {
+      try {
+        const projectV2 = await attempt.run();
+        log.info(
+          `PBL v2 generated (${attempt.label}): ${projectV2.milestones.length} milestones, ${projectV2.roles.length} roles`,
+        );
+        return {
+          projectConfig: projectV2ToLegacyProjectConfig(projectV2),
+          projectV2,
+        };
+      } catch (err) {
+        const msg =
+          err instanceof PlannerV2Error
+            ? `validation failed: ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : String(err);
+        log.warn(`PBL v2 generation failed (${attempt.label}: ${msg}).`);
+      }
+    }
+    log.warn('All PBL v2 attempts failed; falling back to v1 generator.');
+  }
 
   try {
     const projectConfig = await generatePBLContent(
@@ -977,12 +1114,12 @@ async function generatePBLSceneContent(
       thinkingConfig,
     );
     log.info(
-      `PBL generated: ${projectConfig.agents.length} agents, ${projectConfig.issueboard.issues.length} issues`,
+      `PBL v1 generated: ${projectConfig.agents.length} agents, ${projectConfig.issueboard.issues.length} issues`,
     );
 
     return { projectConfig };
   } catch (error) {
-    log.error(`Failed:`, error);
+    log.error(`PBL v1 generation also failed:`, error);
     return null;
   }
 }
@@ -1748,6 +1885,7 @@ export function createSceneWithActions(
       content: {
         type: 'pbl',
         projectConfig: content.projectConfig,
+        ...(content.projectV2 ? { projectV2: content.projectV2 } : {}),
       },
       actions,
     });
