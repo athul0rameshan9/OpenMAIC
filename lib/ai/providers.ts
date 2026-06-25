@@ -1385,8 +1385,7 @@ export function getModel(config: ModelConfig): ModelWithInfo {
       // Azure OpenAI support: detect Azure endpoints and inject api-version
       // query parameter via a custom fetch wrapper.
       const isAzureOpenAI =
-        config.providerId === 'openai' &&
-        effectiveBaseUrl?.includes('.openai.azure.com');
+        config.providerId === 'openai' && effectiveBaseUrl?.includes('.openai.azure.com');
       if (isAzureOpenAI) {
         const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION || '2025-01-01-preview';
         openaiOptions.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
