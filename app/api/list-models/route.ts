@@ -32,24 +32,22 @@ export async function POST(req: NextRequest) {
     const safeClientApiKey = isManaged ? undefined : clientApiKey;
     const safeClientBaseUrl = isManaged ? undefined : clientBaseUrl;
 
-    if (safeClientBaseUrl) {
-      const ssrfError = await validateUrlForSSRF(safeClientBaseUrl);
-      if (ssrfError) {
-        return apiError('INVALID_URL', 403, ssrfError);
-      }
-    }
-
     const apiKey = resolveApiKey(providerId, safeClientApiKey);
-    const baseUrl =
-      resolveBaseUrl(providerId, safeClientBaseUrl) ||
-      safeClientBaseUrl ||
-      provider?.defaultBaseUrl;
+    const baseUrl = resolveBaseUrl(providerId, safeClientBaseUrl) || provider?.defaultBaseUrl;
 
     if (!baseUrl) {
       return apiError('INVALID_REQUEST', 400, 'No base URL configured for this provider');
     }
 
-    // Validate the base URL is a valid URL
+    // SSRF validation runs unconditionally (not gated on NODE_ENV) — this is the
+    // more secure default for a route that fetches user-influenced URLs. For local
+    // providers like LM Studio at localhost:1234, set ALLOW_LOCAL_NETWORKS=true.
+    const ssrfError = await validateUrlForSSRF(baseUrl);
+    if (ssrfError) {
+      return apiError('INVALID_URL', 403, ssrfError);
+    }
+
+    // Validate the base URL and build models endpoint
     let modelsUrl: string;
     try {
       const url = new URL(baseUrl);
@@ -72,13 +70,44 @@ export async function POST(req: NextRequest) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
+    // Use redirect: 'manual' and re-validate each redirect hop to prevent
+    // redirect-based SSRF bypass (mirrors app/api/proxy-media/route.ts).
+    const MAX_REDIRECTS = 5;
+    let currentUrl = modelsUrl;
     let response: Response;
     try {
-      response = await fetch(modelsUrl, {
-        method: 'GET',
-        headers,
-        signal: controller.signal,
-      });
+      for (let hop = 0; ; hop++) {
+        response = await fetch(currentUrl, {
+          method: 'GET',
+          headers,
+          signal: controller.signal,
+          redirect: 'manual',
+        });
+        if (response.status < 300 || response.status >= 400) break; // not a redirect
+        const location = response.headers.get('location');
+        if (!location) {
+          clearTimeout(timeout);
+          return apiError('UPSTREAM_ERROR', 502, 'Redirect response without Location header');
+        }
+        if (hop >= MAX_REDIRECTS) {
+          clearTimeout(timeout);
+          return apiError('TOO_MANY_REDIRECTS', 502, 'Too many redirects');
+        }
+        let nextUrl: string;
+        try {
+          nextUrl = new URL(location, currentUrl).href;
+        } catch {
+          clearTimeout(timeout);
+          return apiError('INVALID_URL', 502, 'Invalid redirect Location');
+        }
+        // Re-validate each redirect hop to prevent redirect-to-internal SSRF
+        const hopError = await validateUrlForSSRF(nextUrl);
+        if (hopError) {
+          clearTimeout(timeout);
+          return apiError('INVALID_URL', 403, hopError);
+        }
+        currentUrl = nextUrl;
+      }
     } catch (error) {
       clearTimeout(timeout);
       if (error instanceof Error && error.name === 'AbortError') {
@@ -92,17 +121,13 @@ export async function POST(req: NextRequest) {
     }
     clearTimeout(timeout);
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      log.error(`Failed to fetch models from ${modelsUrl}: ${response.status} ${errorText}`);
-      return apiError(
-        'UPSTREAM_ERROR',
-        response.status,
-        `Provider returned ${response.status}: ${errorText || response.statusText}`,
-      );
+    if (!response!.ok) {
+      const errorText = await response!.text().catch(() => '');
+      log.error(`Failed to fetch models from ${currentUrl}: ${response!.status} ${errorText}`);
+      return apiError('UPSTREAM_ERROR', response!.status, 'Failed to fetch models from provider');
     }
 
-    const data = await response.json();
+    const data = await response!.json();
 
     // OpenAI-compatible format: { data: [{ id: "model-name", ... }] }
     const models: Array<{ id: string; name: string }> = [];
@@ -120,7 +145,7 @@ export async function POST(req: NextRequest) {
     // Sort models alphabetically
     models.sort((a, b) => a.id.localeCompare(b.id));
 
-    return apiSuccess({ models });
+    return apiSuccess({ models, effectiveBaseUrl: baseUrl });
   } catch (error) {
     log.error('Error listing models:', error);
     return apiError(

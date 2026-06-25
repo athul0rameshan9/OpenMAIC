@@ -181,6 +181,13 @@ export function ProviderConfigPanel({
         if (fetched.length === 0) {
           setFetchModelsMessage(t('settings.noModelsFound'));
         } else {
+          // If the user left Base URL blank and the server resolved via defaultBaseUrl,
+          // persist the effective URL so the provider is considered configured.
+          if (!baseUrl && data.effectiveBaseUrl) {
+            setBaseUrl(data.effectiveBaseUrl);
+            onConfigChange(apiKey, data.effectiveBaseUrl, requiresApiKey);
+            onSave();
+          }
           onFetchModels(fetched);
           setFetchModelsMessage(
             (t('settings.modelsFetched') || 'Fetched {count} models').replace(
@@ -197,7 +204,7 @@ export function ProviderConfigPanel({
     } finally {
       setFetchingModels(false);
     }
-  }, [apiKey, baseUrl, provider.id, onFetchModels, t]);
+  }, [apiKey, baseUrl, provider.id, onFetchModels, onConfigChange, onSave, requiresApiKey, t]);
 
   // Whether this provider supports fetching models (OpenAI-compatible local providers)
   const supportsFetchModels = provider.type === 'openai' && onFetchModels;
