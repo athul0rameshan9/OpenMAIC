@@ -30,6 +30,7 @@ import {
   Wrench,
   FileText,
   Send,
+  RefreshCw,
 } from 'lucide-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import type { ProviderConfig } from '@/lib/ai/providers';
@@ -48,6 +49,7 @@ interface ProviderConfigPanelProps {
   onEditModel: (index: number) => void;
   onDeleteModel: (index: number) => void;
   onAddModel: () => void;
+  onFetchModels?: (models: Array<{ id: string; name: string }>) => void;
   onResetToDefault?: () => void; // Reset provider to default configuration
   isBuiltIn: boolean; // To determine if reset button should be shown
 }
@@ -63,6 +65,7 @@ export function ProviderConfigPanel({
   onEditModel,
   onDeleteModel,
   onAddModel,
+  onFetchModels,
   onResetToDefault,
   isBuiltIn,
 }: ProviderConfigPanelProps) {
@@ -76,6 +79,8 @@ export function ProviderConfigPanel({
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [fetchModelsMessage, setFetchModelsMessage] = useState('');
 
   // Update local state when provider changes or initial values change
   useEffect(() => {
@@ -151,6 +156,58 @@ export function ProviderConfigPanel({
       setTestMessage(t('settings.connectionFailed'));
     }
   }, [apiKey, baseUrl, provider.id, provider.type, requiresApiKey, providersConfig, t]);
+
+  // Fetch available models from the provider's /v1/models endpoint
+  const handleFetchModels = useCallback(async () => {
+    if (!onFetchModels) return;
+    setFetchingModels(true);
+    setFetchModelsMessage('');
+
+    try {
+      const response = await fetch('/api/list-models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          providerId: provider.id,
+          apiKey,
+          baseUrl,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.models) {
+        const fetched = data.models as Array<{ id: string; name: string }>;
+        if (fetched.length === 0) {
+          setFetchModelsMessage(t('settings.noModelsFound'));
+        } else {
+          // If the user left Base URL blank and the server resolved via defaultBaseUrl,
+          // persist the effective URL so the provider is considered configured.
+          if (!baseUrl && data.effectiveBaseUrl) {
+            setBaseUrl(data.effectiveBaseUrl);
+            onConfigChange(apiKey, data.effectiveBaseUrl, requiresApiKey);
+            onSave();
+          }
+          onFetchModels(fetched);
+          setFetchModelsMessage(
+            (t('settings.modelsFetched') || 'Fetched {count} models').replace(
+              '{count}',
+              String(fetched.length),
+            ),
+          );
+        }
+      } else {
+        setFetchModelsMessage(data.error || t('settings.fetchModelsFailed'));
+      }
+    } catch (_error) {
+      setFetchModelsMessage(t('settings.fetchModelsFailed'));
+    } finally {
+      setFetchingModels(false);
+    }
+  }, [apiKey, baseUrl, provider.id, onFetchModels, onConfigChange, onSave, requiresApiKey, t]);
+
+  // Whether this provider supports fetching models (OpenAI-compatible local providers)
+  const supportsFetchModels = provider.type === 'openai' && onFetchModels;
 
   const models = providersConfig[provider.id]?.models || [];
   const isServerConfigured = providersConfig[provider.id]?.isServerConfigured;
@@ -336,6 +393,22 @@ export function ProviderConfigPanel({
           </div>
           {!modelsLocked && (
             <div className="flex items-center gap-2 flex-wrap">
+              {supportsFetchModels && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleFetchModels}
+                  disabled={fetchingModels}
+                  className="gap-1.5"
+                >
+                  {fetchingModels ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  {t('settings.fetchModels')}
+                </Button>
+              )}
               {isBuiltIn && onResetToDefault && (
                 <Button
                   variant="outline"
@@ -354,6 +427,9 @@ export function ProviderConfigPanel({
             </div>
           )}
         </div>
+        {fetchModelsMessage && (
+          <p className="text-xs text-muted-foreground">{fetchModelsMessage}</p>
+        )}
         <div className="space-y-1.5">
           {models.map((model, index) => {
             return (

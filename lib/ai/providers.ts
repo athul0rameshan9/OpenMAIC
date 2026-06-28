@@ -1184,6 +1184,16 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
       },
     ],
   },
+
+  lmstudio: {
+    id: 'lmstudio',
+    name: 'LM Studio',
+    type: 'openai',
+    defaultBaseUrl: 'http://localhost:1234/v1',
+    requiresApiKey: false,
+    icon: 'https://models.dev/logos/lmstudio.svg',
+    models: [],
+  },
 };
 
 applyModelMetadata(PROVIDERS);
@@ -1443,6 +1453,21 @@ export function getModel(config: ModelConfig): ModelWithInfo {
         apiKey: effectiveApiKey,
         baseURL: effectiveBaseUrl,
       };
+
+      // Azure OpenAI support: detect Azure endpoints and inject api-version
+      // query parameter via a custom fetch wrapper.
+      const isAzureOpenAI =
+        config.providerId === 'openai' && effectiveBaseUrl?.includes('.openai.azure.com');
+      if (isAzureOpenAI) {
+        const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION || '2025-01-01-preview';
+        openaiOptions.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+          const urlObj = new URL(url instanceof Request ? url.url : url.toString());
+          if (!urlObj.searchParams.has('api-version')) {
+            urlObj.searchParams.set('api-version', azureApiVersion);
+          }
+          return globalThis.fetch(urlObj.toString(), init);
+        };
+      }
 
       // For OpenAI-compatible providers (not native OpenAI), add a fetch
       // wrapper that injects vendor-specific thinking params into the HTTP

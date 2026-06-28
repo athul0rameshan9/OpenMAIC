@@ -64,6 +64,7 @@ const LLM_ENV_MAP: Record<string, string> = {
   MIMO: 'xiaomi',
   OLLAMA: 'ollama',
   LEMONADE: 'lemonade',
+  LMSTUDIO: 'lmstudio',
 };
 
 const TTS_ENV_MAP: Record<string, string> = {
@@ -297,7 +298,7 @@ function buildConfig(yamlData: YamlData): ServerConfig {
 
   return {
     providers: loadEnvSection(LLM_ENV_MAP, yamlData.providers, {
-      keylessProviders: new Set(['ollama', 'lemonade']),
+      keylessProviders: new Set(['ollama', 'lemonade', 'lmstudio']),
     }),
     tts: loadEnvSection(TTS_ENV_MAP, yamlData.tts, {
       keylessProviders: new Set(['voxcpm-tts', 'lemonade-tts']),
