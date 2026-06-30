@@ -24,6 +24,23 @@ import {
   X,
   Presentation,
 } from 'lucide-react';
+import {
+  IconSearch,
+  IconSun,
+  IconWorld,
+  IconSettings,
+  IconUpload,
+  IconMicrophone,
+  IconDoorEnter,
+  IconBolt,
+  IconLayoutGrid,
+  IconPaperclip,
+  IconPlayerPlayFilled,
+  IconSparkles,
+  IconX,
+  IconMoon,
+  IconDeviceDesktop,
+} from '@tabler/icons-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { createLogger } from '@/lib/logger';
@@ -430,7 +447,7 @@ function HomePage() {
   };
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col overflow-hidden bg-background">
+    <div className="v1-page flex flex-col" style={{ width: '100%', height: '100dvh', background: '#ffffff', overflow: 'hidden', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
@@ -459,14 +476,16 @@ function HomePage() {
       />
 
       {/* ═══ Top Bar ═══ */}
-      <header className="flex items-center justify-between px-5 h-[52px] border-b border-border bg-muted/30 shrink-0">
-        <div className="flex items-center gap-2">
-          <img src="/logo-horizontal.png" alt="Katalyst" className="h-35" />
+      <nav className="flex items-center shrink-0" style={{ height: '64px', background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '0 24px', gap: '16px' }}>
+        <div className="flex items-center gap-2" style={{ overflow: 'hidden', height: '44px' }}>
+          <img src="/logo-horizontal.png" alt="Katalyst" style={{ height: '150px', objectFit: 'contain' }} />
         </div>
-        <span className="text-xs text-muted-foreground hidden md:block">
-          {t('home.slogan')}
-        </span>
-        <div ref={toolbarRef} className="flex items-center gap-2">
+        <div className="flex-1 flex justify-center">
+          <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500, letterSpacing: '0.2px' }}>
+            {t('home.slogan')}
+          </span>
+        </div>
+        <div ref={toolbarRef} className="flex items-center" style={{ gap: '6px' }}>
           {/* Search */}
           <AnimatePresence initial={false}>
             {!searchOpen ? (
@@ -476,9 +495,10 @@ function HomePage() {
                   setSearchOpen(true);
                   requestAnimationFrame(() => searchInputRef.current?.focus());
                 }}
-                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="v1-nav-icon-btn flex items-center justify-center"
+                style={{ width: '36px', height: '36px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#6b7280', transition: 'color 0.15s, background 0.15s' }}
               >
-                <Search className="size-4" />
+                <IconSearch size={16} />
               </button>
             ) : (
               <motion.div
@@ -514,7 +534,7 @@ function HomePage() {
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
                     >
-                      <X />
+                      <IconX size={12} />
                     </InputGroupButton>
                   )}
                 </InputGroup>
@@ -526,22 +546,23 @@ function HomePage() {
           <div className="relative">
             <button
               onClick={() => setThemeOpen(!themeOpen)}
-              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="v1-nav-icon-btn flex items-center justify-center"
+              style={{ width: '36px', height: '36px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#6b7280', transition: 'color 0.15s, background 0.15s' }}
             >
-              {theme === 'light' && <Sun className="size-4" />}
-              {theme === 'dark' && <Moon className="size-4" />}
-              {theme === 'system' && <Monitor className="size-4" />}
+              {theme === 'light' && <IconSun size={16} />}
+              {theme === 'dark' && <IconMoon size={16} />}
+              {theme === 'system' && <IconDeviceDesktop size={16} />}
             </button>
             {themeOpen && (
               <div className="absolute top-full mt-2 right-0 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
                 <button onClick={() => { setTheme('light'); setThemeOpen(false); }} className={cn('w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors flex items-center gap-2', theme === 'light' && 'text-primary bg-primary/5')}>
-                  <Sun className="size-3.5" /> {t('settings.themeOptions.light')}
+                  <IconSun size={14} /> {t('settings.themeOptions.light')}
                 </button>
                 <button onClick={() => { setTheme('dark'); setThemeOpen(false); }} className={cn('w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors flex items-center gap-2', theme === 'dark' && 'text-primary bg-primary/5')}>
-                  <Moon className="size-3.5" /> {t('settings.themeOptions.dark')}
+                  <IconMoon size={14} /> {t('settings.themeOptions.dark')}
                 </button>
                 <button onClick={() => { setTheme('system'); setThemeOpen(false); }} className={cn('w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors flex items-center gap-2', theme === 'system' && 'text-primary bg-primary/5')}>
-                  <Monitor className="size-3.5" /> {t('settings.themeOptions.system')}
+                  <IconDeviceDesktop size={14} /> {t('settings.themeOptions.system')}
                 </button>
               </div>
             )}
@@ -553,50 +574,59 @@ function HomePage() {
           {/* Settings */}
           <button
             onClick={() => setSettingsOpen(true)}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="v1-nav-icon-btn flex items-center justify-center"
+            style={{ width: '36px', height: '36px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#6b7280', transition: 'color 0.15s, background 0.15s' }}
           >
-            <Settings className="size-4" />
+            <IconSettings size={16} />
           </button>
         </div>
-      </header>
+      </nav>
 
       {/* ═══ Main: Left Sidebar + Right Content ═══ */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1" style={{ overflow: 'hidden' }}>
         {/* ── Left Sidebar ── */}
-        <aside className="w-[260px] shrink-0 border-r border-border flex flex-col bg-muted/20">
+        <aside className="flex flex-col shrink-0" style={{ width: '260px', background: '#fff', borderRight: '1px solid #e5e7eb', overflow: 'hidden' }}>
           {/* Tab row */}
-          <div className="flex gap-1 p-2 border-b border-border">
+          <div className="flex shrink-0" style={{ padding: '8px', borderBottom: '1px solid #e5e7eb', gap: '4px' }}>
             <button
               onClick={() => setActiveTab('textbook')}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-xs transition-all',
-                activeTab === 'textbook'
-                  ? 'bg-background text-foreground border border-border shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
+              style={{
+                background: activeTab === 'textbook' ? '#722ed1' : 'transparent',
+                color: activeTab === 'textbook' ? '#fff' : '#6b7280',
+                borderRadius: '6px',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: activeTab === 'textbook' ? 600 : 400,
+                padding: '6px 12px',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                cursor: 'pointer',
+              }}
             >
-              From textbook
+              Classroom
             </button>
             <button
               onClick={() => setActiveTab('free')}
-              className={cn(
-                'px-3 py-1.5 rounded-md text-xs transition-all',
-                activeTab === 'free'
-                  ? 'bg-background text-foreground border border-border shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
+              style={{
+                background: activeTab === 'free' ? '#722ed1' : 'transparent',
+                color: activeTab === 'free' ? '#fff' : '#6b7280',
+                borderRadius: '6px',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: activeTab === 'free' ? 600 : 400,
+                padding: '6px 12px',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                cursor: 'pointer',
+              }}
             >
-              Free prompt
+              Free Prompt
             </button>
           </div>
 
           {/* Sidebar content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1" style={{ overflowY: 'auto', padding: '12px' }}>
             {activeTab === 'textbook' ? (
-              <div className="p-2">
-                <p className="px-2 pt-2 pb-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Your textbooks
-                </p>
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.09em', padding: '0 4px', marginBottom: '8px' }}>Your textbooks</div>
                 <TextbookBrowser
                   selectedTextbook={selectedTextbook}
                   onSelectTextbook={(tb) => {
@@ -607,74 +637,75 @@ function HomePage() {
                 />
               </div>
             ) : (
-              <div className="p-2">
-                <p className="px-2 pt-2 pb-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                  Recent classrooms
-                </p>
-                <div className="space-y-0.5">
+              <div>
+                <div style={{ fontSize: '10px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.09em', padding: '0 4px', marginBottom: '8px' }}>Recent Sessions</div>
+                <div>
                   {filteredClassrooms.map((classroom) => (
                     <div
                       key={classroom.id}
                       onClick={() => router.push(`/classroom/${classroom.id}`)}
-                      className="rounded-lg p-2.5 cursor-pointer hover:bg-muted/60 transition-colors"
+                      className="v1-sidebar-item"
+                      style={{ borderRadius: '10px', padding: '10px', cursor: 'pointer', border: '1px solid transparent', marginBottom: '4px', transition: 'background 0.15s, border-color 0.15s' }}
                     >
-                      <p className="text-[13px] font-medium text-foreground truncate">{classroom.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {classroom.sceneCount} {t('classroom.slides')} · {formatDate(classroom.updatedAt)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center shrink-0" style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg,#8b47ea,#3b82f6)' }}>
+                          <span style={{ fontSize: '13px' }}>📄</span>
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 500, fontSize: '13px', color: '#1a1a2e', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{classroom.name}</div>
+                          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '1px' }}>
+                            {classroom.sceneCount} {t('classroom.slides')} · {formatDate(classroom.updatedAt)}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                   {classrooms.length === 0 && (
-                    <p className="text-xs text-muted-foreground/60 px-2 py-4">No classrooms yet</p>
-                  )}
-                </div>
-                {/* Import buttons */}
-                <div className="mt-3 flex items-center gap-2 px-2">
-                  <button
-                    onClick={triggerFileSelect}
-                    disabled={importing}
-                    className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <Upload className="size-3" />
-                    {t('import.classroom')}
-                  </button>
-                  {PPTX_IMPORT_ENABLED && (
-                    <button
-                      onClick={triggerPptxFileSelect}
-                      disabled={pptxImporting}
-                      className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Presentation className="size-3" />
-                      {t('import.pptx')}
-                    </button>
+                    <p style={{ fontSize: '12px', color: '#9ca3af', padding: '16px 4px' }}>No classrooms yet</p>
                   )}
                 </div>
               </div>
             )}
           </div>
+
+          {/* Bottom import button */}
+          <div className="shrink-0" style={{ padding: '12px', borderTop: '1px solid #e5e7eb' }}>
+            <button
+              onClick={triggerFileSelect}
+              disabled={importing}
+              className="v1-import-btn flex items-center gap-2"
+              style={{ width: '100%', background: 'transparent', border: '1.5px dashed #e5e7eb', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', color: '#6b7280', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'border-color 0.15s, color 0.15s' }}
+            >
+              <IconUpload size={13} />
+              {t('import.classroom')}
+            </button>
+          </div>
         </aside>
 
         {/* ── Right Content ── */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-muted/10">
+        <main className="flex-1 flex flex-col" style={{ background: '#fafafa', overflow: 'hidden', position: 'relative' }}>
+          {/* Decorative radial gradient */}
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle at 100% 0%, rgba(114,46,209,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+
           {/* Right header */}
-          <div className="px-5 pt-4 pb-3 border-b border-border shrink-0">
+          <div className="shrink-0" style={{ padding: '14px 24px 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'relative', zIndex: 1 }}>
             {activeTab === 'textbook' && selectedTextbook ? (
               <>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+                <div className="flex items-center gap-1" style={{ fontSize: '11px', color: '#6b7280' }}>
                   <span>{selectedTextbook.title}</span>
-                  <ChevronDown className="size-3 rotate-[-90deg]" />
-                  <span>Ask</span>
+                  <span style={{ fontSize: '10px', opacity: 0.5, margin: '0 1px' }}>/</span>
+                  <span style={{ color: '#722ed1', fontWeight: 500 }}>Ask</span>
                 </div>
-                <h1 className="text-[17px] font-medium text-foreground">{selectedTextbook.title}</h1>
+                <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#1a1a2e', margin: '3px 0 0', letterSpacing: '-0.2px' }}>{selectedTextbook.title}</h1>
               </>
             ) : (
               <>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+                <div className="flex items-center gap-1" style={{ fontSize: '11px', color: '#6b7280' }}>
                   <span>Katalyst</span>
-                  <ChevronDown className="size-3 rotate-[-90deg]" />
-                  <span>{activeTab === 'textbook' ? 'Textbook' : 'Free prompt'}</span>
+                  <span style={{ fontSize: '10px', opacity: 0.5, margin: '0 1px' }}>/</span>
+                  <span style={{ color: '#722ed1', fontWeight: 500 }}>{activeTab === 'textbook' ? 'Textbook' : 'Free Prompt'}</span>
                 </div>
-                <h1 className="text-[17px] font-medium text-foreground">
+                <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#1a1a2e', margin: '3px 0 0', letterSpacing: '-0.2px' }}>
                   {activeTab === 'textbook' ? 'Select a textbook to get started' : 'Create a new classroom'}
                 </h1>
               </>
@@ -682,42 +713,67 @@ function HomePage() {
           </div>
 
           {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-5">
+          <div className="flex-1" style={{ overflowY: 'auto', padding: '20px 24px 32px', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
               {/* Mode toggle buttons */}
               {activeTab === 'free' && (
-                <div className="flex gap-1.5 mb-4">
+                <div className="flex" style={{ gap: '8px' }}>
                   <button
                     onClick={() => updateForm('interactiveMode', false)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-md text-xs border transition-all',
-                      !form.interactiveMode
-                        ? 'bg-primary/10 text-primary border-primary/30'
-                        : 'bg-background text-muted-foreground border-border hover:border-border/80',
-                    )}
+                    style={{
+                      background: !form.interactiveMode ? 'rgba(114,46,209,0.1)' : '#fff',
+                      color: !form.interactiveMode ? '#722ed1' : '#6b7280',
+                      border: !form.interactiveMode ? '1px solid rgba(114,46,209,0.3)' : '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      padding: '7px 16px',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
                   >
-                    Generate slides
+                    <IconLayoutGrid size={13} />Generate Slides
                   </button>
                   <button
                     onClick={() => updateForm('interactiveMode', true)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-md text-xs border transition-all',
-                      form.interactiveMode
-                        ? 'bg-primary/10 text-primary border-primary/30'
-                        : 'bg-background text-muted-foreground border-border hover:border-border/80',
-                    )}
+                    style={{
+                      background: form.interactiveMode ? 'rgba(114,46,209,0.1)' : '#fff',
+                      color: form.interactiveMode ? '#722ed1' : '#6b7280',
+                      border: form.interactiveMode ? '1px solid rgba(114,46,209,0.3)' : '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      padding: '7px 16px',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
                   >
-                    {t('toolbar.interactiveModeLabel')}
+                    <IconBolt size={13} />{t('toolbar.interactiveModeLabel')}
                   </button>
                   {showVocationalTestUi && (
                     <button
                       onClick={() => updateForm('vocationalTestMode', !form.vocationalTestMode)}
-                      className={cn(
-                        'px-3 py-1.5 rounded-md text-xs border transition-all',
-                        form.vocationalTestMode
-                          ? 'bg-primary/10 text-primary border-primary/30'
-                          : 'bg-background text-muted-foreground border-border hover:border-border/80',
-                      )}
+                      style={{
+                        background: form.vocationalTestMode ? 'rgba(114,46,209,0.1)' : '#fff',
+                        color: form.vocationalTestMode ? '#722ed1' : '#6b7280',
+                        border: form.vocationalTestMode ? '1px solid rgba(114,46,209,0.3)' : '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        padding: '7px 16px',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
                     >
                       职教任务
                     </button>
@@ -727,24 +783,24 @@ function HomePage() {
 
               {/* ═══ Prompt Area ═══ */}
               {activeTab === 'textbook' ? (
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Selected textbook pill */}
                   {selectedTextbook && (
-                    <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
-                      <BookOpen className="h-4 w-4 text-primary shrink-0" />
-                      <span className="text-xs font-medium truncate">{selectedTextbook.title}</span>
+                    <div className="flex items-center gap-2" style={{ borderRadius: '8px', border: '1px solid rgba(114,46,209,0.3)', background: 'rgba(114,46,209,0.05)', padding: '8px 12px' }}>
+                      <BookOpen className="h-4 w-4 shrink-0" style={{ color: '#722ed1' }} />
+                      <span style={{ fontSize: '12px', fontWeight: 500 }} className="truncate">{selectedTextbook.title}</span>
                       <button
                         onClick={() => { setSelectedTextbook(null); setShowChunkPreview(false); resetChunks(); }}
                         className="ml-auto shrink-0"
                       >
-                        <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                        <IconX size={14} style={{ color: '#6b7280' }} />
                       </button>
                     </div>
                   )}
 
                   {/* Prompt box */}
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-[13px] text-muted-foreground mb-2 leading-relaxed">
+                  <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #e5e7eb', padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+                    <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px', lineHeight: 1.65 }}>
                       {selectedTextbook
                         ? `What would you like to learn from "${selectedTextbook.title}"?`
                         : 'Select a textbook from the sidebar to get started.'}
@@ -752,7 +808,7 @@ function HomePage() {
                     <div className="flex gap-2 items-center">
                       <input
                         placeholder="e.g. Explain sample space with an example…"
-                        className="flex-1 h-9 rounded-md border border-border bg-muted/30 px-3 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
+                        style={{ flex: 1, height: '36px', borderRadius: '6px', border: '1px solid #e5e7eb', background: '#fafafa', padding: '0 12px', fontSize: '13px', color: '#1a1a2e', outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                         value={textbookPrompt}
                         onChange={(e) => { setTextbookPrompt(e.target.value); setShowChunkPreview(false); }}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!showChunkPreview) handleSearchTextbook(); else if (chunks.length > 0) handleGenerateFromTextbook(); } }}
@@ -762,29 +818,47 @@ function HomePage() {
                         <button
                           onClick={handleSearchTextbook}
                           disabled={!canGenerateFromTextbook}
-                          className={cn(
-                            'h-9 rounded-md flex items-center gap-1.5 px-3 text-xs font-medium border transition-all whitespace-nowrap',
-                            canGenerateFromTextbook
-                              ? 'bg-primary text-primary-foreground border-primary hover:opacity-90 cursor-pointer'
-                              : 'bg-muted text-muted-foreground/40 border-border cursor-not-allowed',
-                          )}
+                          className="v1-enter-btn flex items-center"
+                          style={{
+                            gap: '6px',
+                            background: canGenerateFromTextbook ? '#722ed1' : '#e5e7eb',
+                            color: canGenerateFromTextbook ? '#fff' : '#9ca3af',
+                            border: 'none',
+                            borderRadius: '9px',
+                            padding: '0 18px',
+                            height: '36px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            cursor: canGenerateFromTextbook ? 'pointer' : 'not-allowed',
+                            transition: 'background 0.15s',
+                            boxShadow: canGenerateFromTextbook ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
+                          }}
                         >
-                          <Search className="size-3.5" />
-                          Search
+                          <IconSearch size={14} /> Search
                         </button>
                       ) : (
                         <button
                           onClick={handleGenerateFromTextbook}
                           disabled={!canGenerateFromTextbook || chunks.length === 0}
-                          className={cn(
-                            'h-9 rounded-md flex items-center gap-1.5 px-3 text-xs font-medium border transition-all whitespace-nowrap',
-                            canGenerateFromTextbook && chunks.length > 0
-                              ? 'bg-primary text-primary-foreground border-primary hover:opacity-90 cursor-pointer'
-                              : 'bg-muted text-muted-foreground/40 border-border cursor-not-allowed',
-                          )}
+                          className="v1-enter-btn flex items-center"
+                          style={{
+                            gap: '6px',
+                            background: canGenerateFromTextbook && chunks.length > 0 ? '#722ed1' : '#e5e7eb',
+                            color: canGenerateFromTextbook && chunks.length > 0 ? '#fff' : '#9ca3af',
+                            border: 'none',
+                            borderRadius: '9px',
+                            padding: '0 18px',
+                            height: '36px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            cursor: canGenerateFromTextbook && chunks.length > 0 ? 'pointer' : 'not-allowed',
+                            transition: 'background 0.15s',
+                            boxShadow: canGenerateFromTextbook && chunks.length > 0 ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
+                          }}
                         >
-                          <ArrowUp className="size-3.5" />
-                          Generate
+                          <ArrowUp className="size-3.5" /> Generate
                         </button>
                       )}
                     </div>
@@ -792,17 +866,17 @@ function HomePage() {
 
                   {/* Chunk preview */}
                   {showChunkPreview && (
-                    <div className="rounded-xl border border-border bg-background p-3 max-h-[250px] overflow-y-auto">
+                    <div style={{ borderRadius: '16px', border: '1px solid #e5e7eb', background: '#fff', padding: '12px', maxHeight: '250px', overflowY: 'auto' }}>
                       <ChunkPreview chunks={chunks} loading={chunksLoading} error={chunksError} />
                     </div>
                   )}
                 </div>
               ) : (
                 /* Free prompt mode */
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Prompt box */}
-                  <div className="rounded-xl border border-border bg-background p-3 min-h-[72px]">
-                    <div className="relative z-20 flex items-start justify-between mb-2">
+                  <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #e5e7eb', padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+                    <div className="flex items-center justify-between">
                       <GreetingBar />
                       <div className="shrink-0">
                         <AgentBar />
@@ -811,53 +885,82 @@ function HomePage() {
                     <textarea
                       ref={textareaRef}
                       placeholder={t('upload.requirementPlaceholder')}
-                      className="w-full resize-none border-0 bg-transparent text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[80px] max-h-[200px]"
+                      style={{ width: '100%', resize: 'none', border: 'none', background: 'transparent', fontSize: '13px', color: '#1a1a2e', outline: 'none', minHeight: '72px', marginTop: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif", lineHeight: 1.65, boxSizing: 'border-box' }}
                       value={form.requirement}
                       onChange={(e) => updateForm('requirement', e.target.value)}
                       onKeyDown={handleKeyDown}
                       rows={3}
                     />
-                  </div>
 
-                  {/* Action row */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                      <GenerationToolbar
-                        webSearch={form.webSearch}
-                        onWebSearchChange={(v) => updateForm('webSearch', v)}
-                        onSettingsOpen={(section) => {
-                          setSettingsSection(section);
-                          setSettingsOpen(true);
-                        }}
-                        pdfFile={form.pdfFile}
-                        onPdfFileChange={(f) => updateForm('pdfFile', f)}
-                        onPdfError={setError}
-                      />
+                    {/* Toolbar row */}
+                    <div className="flex items-center justify-between" style={{ marginTop: '4px', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+                      <div className="flex items-center" style={{ gap: '6px' }}>
+                        <GenerationToolbar
+                          webSearch={form.webSearch}
+                          onWebSearchChange={(v) => updateForm('webSearch', v)}
+                          onSettingsOpen={(section) => {
+                            setSettingsSection(section);
+                            setSettingsOpen(true);
+                          }}
+                          pdfFile={form.pdfFile}
+                          onPdfFileChange={(f) => updateForm('pdfFile', f)}
+                          onPdfError={setError}
+                        />
+                      </div>
+                      <div className="flex items-center" style={{ gap: '8px' }}>
+                        <SpeechButton
+                          size="md"
+                          onTranscription={(text) => {
+                            setForm((prev) => {
+                              const next = prev.requirement + (prev.requirement ? ' ' : '') + text;
+                              updateRequirementCache(next);
+                              return { ...prev, requirement: next };
+                            });
+                          }}
+                        />
+                        <button
+                          onClick={handleGenerate}
+                          disabled={!canGenerate}
+                          className="v1-enter-btn flex items-center"
+                          style={{
+                            gap: '6px',
+                            background: canGenerate ? '#722ed1' : '#e5e7eb',
+                            color: canGenerate ? '#fff' : '#9ca3af',
+                            border: 'none',
+                            borderRadius: '9px',
+                            padding: '0 18px',
+                            height: '36px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            cursor: canGenerate ? 'pointer' : 'not-allowed',
+                            letterSpacing: '0.01em',
+                            transition: 'background 0.15s',
+                            boxShadow: canGenerate ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
+                          }}
+                        >
+                          <IconDoorEnter size={14} /> {t('toolbar.enterClassroom')}
+                        </button>
+                      </div>
                     </div>
-                    <SpeechButton
-                      size="md"
-                      onTranscription={(text) => {
-                        setForm((prev) => {
-                          const next = prev.requirement + (prev.requirement ? ' ' : '') + text;
-                          updateRequirementCache(next);
-                          return { ...prev, requirement: next };
-                        });
-                      }}
-                    />
-                    <button
-                      onClick={handleGenerate}
-                      disabled={!canGenerate}
-                      className={cn(
-                        'shrink-0 h-9 rounded-md flex items-center justify-center gap-1.5 transition-all px-3 border',
-                        canGenerate
-                          ? 'bg-primary text-primary-foreground border-primary hover:opacity-90 cursor-pointer'
-                          : 'bg-muted text-muted-foreground/40 border-border cursor-not-allowed',
-                      )}
-                    >
-                      <ArrowUp className="size-3.5" />
-                      <span className="text-xs font-medium">{t('toolbar.enterClassroom')}</span>
-                    </button>
                   </div>
+                </div>
+              )}
+
+              {/* Quick chips */}
+              {activeTab === 'free' && (
+                <div className="flex flex-wrap items-center" style={{ gap: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#6b7280', marginRight: '4px', fontWeight: 500 }}>Try asking:</span>
+                  {['Teach me Python', 'Explain black holes', 'Game Theory', 'Neural Networks 101'].map((chip) => (
+                    <span
+                      key={chip}
+                      className="v1-quick-chip"
+                      style={{ borderRadius: '20px', border: '1px solid #e5e7eb', fontSize: '11px', color: '#6b7280', padding: '5px 13px', background: '#fff', cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s' }}
+                      onClick={() => updateForm('requirement', chip)}
+                    >
+                      {chip}
+                    </span>
+                  ))}
                 </div>
               )}
 
@@ -868,55 +971,35 @@ function HomePage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+                    style={{ padding: '12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px' }}
                   >
-                    <p className="text-sm text-destructive">{error}</p>
+                    <p style={{ fontSize: '13px', color: '#ef4444' }}>{error}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* ═══ Divider ═══ */}
+              {/* ═══ Recent Sessions ═══ */}
               {classrooms.length > 0 && (
                 <>
-                  <div className="h-px bg-border my-5" />
-
-                  {/* Section label */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                      Recent sessions
+                  <div className="flex items-center" style={{ gap: '8px', marginTop: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.09em' }}>Recent Sessions</span>
+                    <span style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', fontSize: '11px', color: '#6b7280', padding: '2px 9px', borderRadius: '20px', fontWeight: 500 }}>{classrooms.length}</span>
+                    <div className="flex-1" style={{ height: '1px', background: '#e5e7eb' }} />
+                    <span
+                      onClick={triggerFileSelect}
+                      style={{ fontSize: '11px', color: '#722ed1', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}
+                    >
+                      Import ↗
                     </span>
-                    <span className="text-[11px] font-medium bg-muted border border-border px-2 py-0.5 rounded-full text-muted-foreground">
-                      {classrooms.length}
-                    </span>
-                    <div className="ml-auto flex items-center gap-2">
-                      <button
-                        onClick={triggerFileSelect}
-                        disabled={importing}
-                        className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-                      >
-                        <Upload className="size-3" />
-                        {t('import.classroom')}
-                      </button>
-                      {PPTX_IMPORT_ENABLED && (
-                        <button
-                          onClick={triggerPptxFileSelect}
-                          disabled={pptxImporting}
-                          className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-                        >
-                          <Presentation className="size-3" />
-                          {t('import.pptx')}
-                        </button>
-                      )}
-                    </div>
                   </div>
 
                   {/* Sessions grid */}
                   {searchQuery.trim() && filteredClassrooms.length === 0 ? (
-                    <div className="py-8 text-center text-[13px] text-muted-foreground/60">
+                    <div style={{ padding: '32px 0', textAlign: 'center', fontSize: '13px', color: '#9ca3af' }}>
                       {t('classroom.searchEmpty')}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
                       {filteredClassrooms.map((classroom, i) => (
                         <motion.div
                           key={classroom.id}
@@ -944,27 +1027,45 @@ function HomePage() {
 
               {/* Empty state import buttons */}
               {classrooms.length === 0 && activeTab === 'free' && (
-                <div className="mt-4 flex items-center gap-4">
+                <div className="flex items-center" style={{ gap: '16px', marginTop: '4px' }}>
                   <button
                     onClick={triggerFileSelect}
                     disabled={importing}
-                    className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                    className="v1-import-btn flex items-center"
+                    style={{ gap: '6px', background: 'transparent', border: '1.5px dashed #e5e7eb', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', color: '#6b7280', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'border-color 0.15s, color 0.15s' }}
                   >
-                    <Upload className="size-3.5" />
+                    <IconUpload size={13} />
                     <span>{t('import.classroom')}</span>
                   </button>
                   {PPTX_IMPORT_ENABLED && (
                     <button
                       onClick={triggerPptxFileSelect}
                       disabled={pptxImporting}
-                      className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                      className="v1-import-btn flex items-center"
+                      style={{ gap: '6px', background: 'transparent', border: '1.5px dashed #e5e7eb', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', color: '#6b7280', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'border-color 0.15s, color 0.15s' }}
                     >
-                      <Presentation className="size-3.5" />
+                      <Presentation className="size-3" />
                       <span>{t('import.pptx')}</span>
                     </button>
                   )}
                 </div>
               )}
+
+              {/* Feature badges */}
+              {activeTab === 'free' && (
+                <div className="flex flex-wrap" style={{ gap: '10px', paddingBottom: '12px' }}>
+                  {['⚡ One-click generation', '🤖 Multi-agent classroom', '🎮 Interactive simulations', '📤 Export to PPTX & HTML'].map((badge) => (
+                    <span
+                      key={badge}
+                      className="v1-feature-badge"
+                      style={{ borderRadius: '20px', background: '#fff', border: '1px solid #e5e7eb', fontSize: '11px', color: '#6b7280', padding: '6px 14px', transition: 'border-color 0.15s, color 0.15s', cursor: 'default', fontWeight: 500 }}
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+
             </div>
           </div>
         </main>
@@ -1056,7 +1157,7 @@ function GreetingBar() {
   };
 
   return (
-    <div ref={containerRef} className="relative pl-4 pr-2 pt-3.5 pb-1 w-auto">
+    <div ref={containerRef} style={{ position: 'relative', width: 'auto' }}>
       <input
         ref={avatarInputRef}
         type="file"
@@ -1068,32 +1169,14 @@ function GreetingBar() {
       {/* ── Collapsed pill (always in flow) ── */}
       {!open && (
         <div
-          className="flex items-center gap-2.5 cursor-pointer transition-all duration-200 group rounded-full px-2.5 py-1.5 border border-border/50 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60 active:scale-[0.97]"
+          className="flex items-center"
+          style={{ gap: '9px', cursor: 'pointer' }}
           onClick={() => setOpen(true)}
         >
-          <div className="shrink-0 relative">
-            <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-border/30 group-hover:ring-violet-400/60 dark:group-hover:ring-violet-400/40 transition-all duration-300">
-              <img src={avatar} alt="" className="size-full object-cover" />
-            </div>
-            <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-white dark:bg-slate-800 border border-border/40 flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
-              <Pencil className="size-[7px] text-muted-foreground/70" />
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="leading-none select-none flex items-center gap-1">
-                  <span className="text-[13px] font-semibold text-foreground/85 group-hover:text-foreground transition-colors">
-                    {t('home.greetingWithName', { name: displayName })}
-                  </span>
-                  <ChevronDown className="size-3 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={4}>
-                {t('profile.editTooltip')}
-              </TooltipContent>
-            </Tooltip>
-          </div>
+          <img src={avatar} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a2e' }}>
+            {t('home.greetingWithName', { name: displayName })}
+          </span>
         </div>
       )}
 
@@ -1322,11 +1405,11 @@ function ClassroomCard({
   };
 
   return (
-    <div className="group cursor-pointer" onClick={confirmingDelete ? undefined : onClick}>
-      {/* Thumbnail — large radius, no border, subtle bg */}
+    <div className="v1-session-card" style={{ cursor: 'pointer', background: '#fff', borderRadius: '18px', border: '1px solid #f0ebff', padding: '10px', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }} onClick={confirmingDelete ? undefined : onClick}>
+      {/* Thumbnail — gradient with decorative elements */}
       <div
         ref={thumbRef}
-        className="relative w-full aspect-[16/9] rounded-2xl bg-slate-100 dark:bg-slate-800/80 overflow-hidden transition-transform duration-200 group-hover:scale-[1.02]"
+        style={{ aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg,#8b47ea 0%,#5b8af7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         {slide && thumbWidth > 0 ? (
           <SlideThumbnail
@@ -1336,12 +1419,22 @@ function ClassroomCard({
             viewportRatio={slide.viewportRatio ?? 0.5625}
           />
         ) : !slide ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="size-12 rounded-2xl bg-gradient-to-br from-violet-100 to-blue-100 dark:from-violet-900/30 dark:to-blue-900/30 flex items-center justify-center">
-              <span className="text-xl opacity-50">📄</span>
-            </div>
+          <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+            <div style={{ fontSize: '28px', marginBottom: '6px' }}>📄</div>
+            <div style={{ color: 'rgba(255,255,255,0.95)', fontSize: '14px', fontWeight: 700, letterSpacing: '-0.2px' }}>{classroom.name}</div>
           </div>
         ) : null}
+
+        {/* Decorative circles */}
+        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ position: 'absolute', bottom: '-15px', left: '-15px', width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+
+        {/* Hover overlay with play button */}
+        <div className="v1-card-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s', borderRadius: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <IconPlayerPlayFilled size={16} style={{ color: '#722ed1' }} />
+          </div>
+        </div>
 
         {showModeBadge && (
           <Tooltip>
@@ -1349,25 +1442,12 @@ function ClassroomCard({
               <span
                 aria-label={modeBadgeLabel}
                 onClick={(e) => e.stopPropagation()}
-                className={cn(
-                  'absolute bottom-2 left-2 inline-flex items-center justify-center size-5 rounded-full bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm shadow-sm z-10',
-                  isTaskEngineMode
-                    ? 'text-amber-600 dark:text-amber-300 ring-1 ring-amber-500/35'
-                    : 'text-cyan-600 dark:text-cyan-300 ring-1 ring-cyan-500/30',
-                )}
+                style={{ position: 'absolute', bottom: '8px', left: '8px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(4px)', zIndex: 10 }}
               >
                 <ModeBadgeIcon className="size-3" />
               </span>
             </TooltipTrigger>
-            {/* Negative sideOffset compensates for the global Tooltip Arrow's
-                rotate-45 bounding box, which Radix reserves as spacing. */}
-            <TooltipContent
-              side="top"
-              align="start"
-              sideOffset={-4}
-              collisionPadding={0}
-              className="text-xs"
-            >
+            <TooltipContent side="top" align="start" sideOffset={-4} collisionPadding={0} className="text-xs">
               {modeBadgeLabel}
             </TooltipContent>
           </Tooltip>
@@ -1413,21 +1493,21 @@ function ClassroomCard({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/50 backdrop-blur-[6px]"
+              style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <span className="text-[13px] font-medium text-white/90">
+              <span style={{ fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.9)' }}>
                 {t('classroom.deleteConfirmTitle')}?
               </span>
               <div className="flex gap-2">
                 <button
-                  className="px-3.5 py-1 rounded-lg text-[12px] font-medium bg-white/15 text-white/80 hover:bg-white/25 backdrop-blur-sm transition-colors"
+                  style={{ padding: '4px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)', border: 'none', cursor: 'pointer' }}
                   onClick={onCancelDelete}
                 >
                   {t('common.cancel')}
                 </button>
                 <button
-                  className="px-3.5 py-1 rounded-lg text-[12px] font-medium bg-red-500/90 text-white hover:bg-red-500 transition-colors"
+                  style={{ padding: '4px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 500, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', cursor: 'pointer' }}
                   onClick={onConfirmDelete}
                 >
                   {t('classroom.delete')}
@@ -1439,58 +1519,59 @@ function ClassroomCard({
       </div>
 
       {/* Info — outside the thumbnail */}
-      <div className="mt-2.5 px-1 flex items-center gap-2">
-        <span className="shrink-0 inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/30 px-2 py-0.5 text-[11px] font-medium text-violet-600 dark:text-violet-400">
-          {classroom.sceneCount} {t('classroom.slides')} · {formatDate(classroom.updatedAt)}
+      <div className="flex items-center" style={{ marginTop: '8px', gap: '6px' }}>
+        <span style={{ background: '#f0ebff', color: '#722ed1', fontSize: '11px', padding: '2px 9px', borderRadius: '20px', fontWeight: 500 }}>
+          {classroom.sceneCount} {t('classroom.slides')}
         </span>
-        {editing ? (
-          <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
-            <input
-              ref={nameInputRef}
-              value={nameDraft}
-              onChange={(e) => setNameDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitRename();
-                if (e.key === 'Escape') setEditing(false);
-              }}
-              onBlur={commitRename}
-              maxLength={100}
-              placeholder={t('classroom.renamePlaceholder')}
-              className="w-full bg-transparent border-b border-violet-400/60 text-[15px] font-medium text-foreground/90 outline-none placeholder:text-muted-foreground/40"
-            />
-          </div>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p
-                className="font-medium text-[15px] truncate text-foreground/90 min-w-0 cursor-text"
-                onDoubleClick={startRename}
-              >
-                {classroom.name}
-              </p>
-            </TooltipTrigger>
-            <TooltipContent
-              side="bottom"
-              sideOffset={4}
-              className="!max-w-[min(90vw,32rem)] break-words whitespace-normal"
-            >
-              <div className="flex items-center gap-1.5">
-                <span className="break-all">{classroom.name}</span>
-                <button
-                  className="shrink-0 p-0.5 rounded hover:bg-foreground/10 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(classroom.name);
-                    toast.success(t('classroom.nameCopied'));
-                  }}
-                >
-                  <Copy className="size-3 opacity-60" />
-                </button>
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        )}
+        <span style={{ fontSize: '11px', color: '#9ca3af' }}>{formatDate(classroom.updatedAt)}</span>
       </div>
+      {editing ? (
+        <div style={{ marginTop: '3px' }} onClick={(e) => e.stopPropagation()}>
+          <input
+            ref={nameInputRef}
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitRename();
+              if (e.key === 'Escape') setEditing(false);
+            }}
+            onBlur={commitRename}
+            maxLength={100}
+            placeholder={t('classroom.renamePlaceholder')}
+            style={{ width: '100%', background: 'transparent', borderBottom: '1px solid rgba(114,46,209,0.4)', fontSize: '14px', fontWeight: 600, color: '#1a1a2e', outline: 'none', border: 'none', borderBottomWidth: '1px', borderBottomStyle: 'solid', borderBottomColor: 'rgba(114,46,209,0.4)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          />
+        </div>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p
+              style={{ fontSize: '14px', fontWeight: 600, color: '#1a1a2e', marginTop: '3px', letterSpacing: '-0.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+              onDoubleClick={startRename}
+            >
+              {classroom.name}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            sideOffset={4}
+            className="!max-w-[min(90vw,32rem)] break-words whitespace-normal"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="break-all">{classroom.name}</span>
+              <button
+                className="shrink-0 p-0.5 rounded hover:bg-foreground/10 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(classroom.name);
+                  toast.success(t('classroom.nameCopied'));
+                }}
+              >
+                <Copy className="size-3 opacity-60" />
+              </button>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }

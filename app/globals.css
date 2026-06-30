@@ -126,6 +126,58 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ═══ Variant 1 — Light Playful ═══ */
+
+.v1-sidebar-item:hover {
+  background: #f8f7ff !important;
+  border-color: #e5e7eb !important;
+}
+
+.v1-quick-chip:hover {
+  border-color: rgba(114,46,209,0.4) !important;
+  color: #722ed1 !important;
+}
+
+.v1-session-card:hover .v1-card-overlay {
+  opacity: 1;
+}
+
+.v1-nav-icon-btn:hover {
+  color: #1a1a2e !important;
+  background: #f8f7ff;
+}
+
+.v1-enter-btn:hover {
+  background: #5b21b6 !important;
+}
+
+.v1-import-btn:hover {
+  border-color: #722ed1 !important;
+  color: #722ed1 !important;
+}
+
+.v1-tool-chip:hover {
+  border-color: rgba(114,46,209,0.4) !important;
+  color: #722ed1 !important;
+}
+
+.v1-feature-badge:hover {
+  border-color: rgba(114,46,209,0.3) !important;
+  color: #722ed1 !important;
+}
+
+@keyframes v1-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+.v1-pulse-dot {
+  animation: v1-pulse-dot 2s ease-in-out infinite;
+}
+
+.v1-page ::-webkit-scrollbar { width: 4px; }
+.v1-page ::-webkit-scrollbar-track { background: transparent; }
+.v1-page ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
