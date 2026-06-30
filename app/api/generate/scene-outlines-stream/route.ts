@@ -300,12 +300,14 @@ export async function POST(req: NextRequest) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'Requirements are required');
     }
 
-    const { requirements, pdfText, pdfImages, imageMapping, researchContext, agents } = body as {
+    const { requirements, pdfText, pdfImages, imageMapping, researchContext, ragContext, textbookTitle, agents } = body as {
       requirements: UserRequirements;
       pdfText?: string;
       pdfImages?: PdfImage[];
       imageMapping?: ImageMapping;
       researchContext?: string;
+      ragContext?: string;
+      textbookTitle?: string;
       agents?: AgentInfo[];
     };
     requirementSnippet = requirements?.requirement?.substring(0, 60);
@@ -367,9 +369,17 @@ export async function POST(req: NextRequest) {
         ? PROMPT_IDS.INTERACTIVE_OUTLINES
         : PROMPT_IDS.REQUIREMENTS_TO_OUTLINES;
 
+    // Build effective document content: RAG context takes priority, then full PDF text
+    let effectivePdfContent = 'None';
+    if (ragContext && textbookTitle) {
+      effectivePdfContent = `[Relevant excerpts from textbook "${textbookTitle}"]\n\n${ragContext}`;
+    } else if (pdfText) {
+      effectivePdfContent = pdfText.substring(0, MAX_PDF_CONTENT_CHARS);
+    }
+
     const prompts = buildPrompt(promptId, {
       requirement: requirements.requirement,
-      pdfContent: pdfText ? pdfText.substring(0, MAX_PDF_CONTENT_CHARS) : 'None',
+      pdfContent: effectivePdfContent,
       availableImages: availableImagesText,
       researchContext: researchContext || 'None',
       hasSourceImages,

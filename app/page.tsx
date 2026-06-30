@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUp,
+  BookOpen,
   Check,
   ChevronDown,
   Clock,
@@ -59,6 +60,10 @@ import { SpeechButton } from '@/components/audio/speech-button';
 import { useImportClassroom } from '@/lib/import/use-import-classroom';
 import { shouldShowVocationalTestUi } from '@/lib/config/feature-flags';
 import { useImportPptx } from '@/lib/import/use-import-pptx';
+import { TextbookBrowser } from '@/components/textbook-browser';
+import { ChunkPreview } from '@/components/textbook-browser/chunk-preview';
+import { useTextbookSearch } from '@/lib/hooks/use-textbook-search';
+import type { Textbook } from '@/lib/types/textbook';
 
 const log = createLogger('Home');
 
@@ -98,6 +103,13 @@ function HomePage() {
   const [settingsSection, setSettingsSection] = useState<
     import('@/lib/types/settings').SettingsSection | undefined
   >(undefined);
+
+  // ═══ Textbook-grounded tab state ═══
+  const [activeTab, setActiveTab] = useState<'textbook' | 'free'>('textbook');
+  const [selectedTextbook, setSelectedTextbook] = useState<Textbook | null>(null);
+  const [textbookPrompt, setTextbookPrompt] = useState('');
+  const [showChunkPreview, setShowChunkPreview] = useState(false);
+  const { chunks, loading: chunksLoading, error: chunksError, search: searchChunks, reset: resetChunks } = useTextbookSearch();
 
   // Draft cache for requirement text
   const { cachedValue: cachedRequirement, updateCache: updateRequirementCache } =
@@ -361,10 +373,60 @@ function HomePage() {
 
   const canGenerate = !!form.requirement.trim() && hasUsableProvider;
 
+  // ═══ Textbook-grounded generation ═══
+  const canGenerateFromTextbook = !!selectedTextbook && !!textbookPrompt.trim() && hasUsableProvider;
+
+  const handleSearchTextbook = async () => {
+    if (!selectedTextbook || !textbookPrompt.trim()) return;
+    setShowChunkPreview(true);
+    await searchChunks(selectedTextbook.textbook_id, textbookPrompt.trim());
+  };
+
+  const handleGenerateFromTextbook = async () => {
+    if (!selectedTextbook || !textbookPrompt.trim()) return;
+    setError(null);
+
+    try {
+      const userProfile = useUserProfileStore.getState();
+      const ragContext = chunks.map((c) => c.text).join('\n\n---\n\n');
+
+      const requirements: UserRequirements = {
+        requirement: textbookPrompt,
+        userNickname: userProfile.nickname || undefined,
+        userBio: userProfile.bio || undefined,
+      };
+
+      const sessionState = {
+        sessionId: nanoid(),
+        requirements,
+        pdfText: '',
+        pdfImages: [],
+        imageStorageIds: [],
+        sceneOutlines: null,
+        currentStep: 'generating' as const,
+        textbookId: selectedTextbook.textbook_id,
+        textbookTitle: selectedTextbook.title,
+        ragChunks: chunks,
+        ragContext,
+      };
+      sessionStorage.setItem('generationSession', JSON.stringify(sessionState));
+
+      router.push('/generation-preview');
+    } catch (err) {
+      log.error('Error preparing textbook generation:', err);
+      setError(err instanceof Error ? err.message : t('upload.generateFailed'));
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
-      if (canGenerate) handleGenerate();
+      if (activeTab === 'textbook' && canGenerateFromTextbook) {
+        if (showChunkPreview && chunks.length > 0) handleGenerateFromTextbook();
+        else handleSearchTextbook();
+      } else if (activeTab === 'free' && canGenerate) {
+        handleGenerate();
+      }
     }
   };
 
@@ -495,14 +557,15 @@ function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
         className={cn(
-          'relative z-20 w-full max-w-[800px] flex flex-col items-center',
+          'relative z-20 w-full flex flex-col items-center',
+          activeTab === 'textbook' ? 'max-w-[1100px]' : 'max-w-[800px]',
           classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-[10vh]',
         )}
       >
         {/* ── Logo ── */}
         <motion.img
           src="/logo-horizontal.png"
-          alt="OpenMAIC"
+          alt="Katalyst AI"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{
@@ -524,7 +587,132 @@ function HomePage() {
           {t('home.slogan')}
         </motion.p>
 
-        {/* ── Unified input area ── */}
+        {/* ── Tab Switcher ── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="w-full flex items-center gap-1 mb-4 bg-muted/50 p-1 rounded-lg max-w-[320px]"
+        >
+          <button
+            onClick={() => setActiveTab('textbook')}
+            className={cn(
+              'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+              activeTab === 'textbook'
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            From Textbook
+          </button>
+          <button
+            onClick={() => setActiveTab('free')}
+            className={cn(
+              'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+              activeTab === 'free'
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            Free Prompt
+          </button>
+        </motion.div>
+
+        {/* ═══ FROM TEXTBOOK TAB ═══ */}
+        {activeTab === 'textbook' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.35 }}
+            className="w-full max-w-[1100px]"
+          >
+            <div className="flex gap-4 w-full">
+              {/* Left panel: Textbook browser */}
+              <div className="w-[340px] shrink-0 max-h-[500px] overflow-y-auto rounded-xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Select a textbook</p>
+                <TextbookBrowser
+                  selectedTextbook={selectedTextbook}
+                  onSelectTextbook={(tb) => {
+                    setSelectedTextbook(tb);
+                    setShowChunkPreview(false);
+                    resetChunks();
+                  }}
+                />
+              </div>
+
+              {/* Right panel: Prompt + chunks + generate */}
+              <div className="flex-1 min-w-0 flex flex-col gap-3">
+                {/* Selected textbook indicator */}
+                {selectedTextbook && (
+                  <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                    <BookOpen className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-xs font-medium truncate">{selectedTextbook.title}</span>
+                    <button
+                      onClick={() => { setSelectedTextbook(null); setShowChunkPreview(false); resetChunks(); }}
+                      className="ml-auto shrink-0"
+                    >
+                      <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Prompt textarea */}
+                <div className="rounded-xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3">
+                  <textarea
+                    placeholder={selectedTextbook ? `What would you like to learn from "${selectedTextbook.title}"?` : 'Select a textbook first...'}
+                    className="w-full resize-none border-0 bg-transparent text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[100px] max-h-[200px]"
+                    value={textbookPrompt}
+                    onChange={(e) => { setTextbookPrompt(e.target.value); setShowChunkPreview(false); }}
+                    onKeyDown={handleKeyDown}
+                    disabled={!selectedTextbook}
+                    rows={3}
+                  />
+                  <div className="flex items-center justify-end gap-2 mt-2">
+                    {!showChunkPreview ? (
+                      <button
+                        onClick={handleSearchTextbook}
+                        disabled={!canGenerateFromTextbook}
+                        className={cn(
+                          'h-8 rounded-lg flex items-center gap-1.5 px-3 text-xs font-medium transition-all',
+                          canGenerateFromTextbook
+                            ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
+                            : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
+                        )}
+                      >
+                        <Search className="size-3.5" />
+                        Search & Preview
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleGenerateFromTextbook}
+                        disabled={!canGenerateFromTextbook || chunks.length === 0}
+                        className={cn(
+                          'h-8 rounded-lg flex items-center gap-1.5 px-3 text-xs font-medium transition-all',
+                          canGenerateFromTextbook && chunks.length > 0
+                            ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
+                            : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
+                        )}
+                      >
+                        <ArrowUp className="size-3.5" />
+                        Generate Classroom
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Chunk preview */}
+                {showChunkPreview && (
+                  <div className="rounded-xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 max-h-[250px] overflow-y-auto">
+                    <ChunkPreview chunks={chunks} loading={chunksLoading} error={chunksError} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ═══ FREE PROMPT TAB (existing UI) ═══ */}
+        {activeTab === 'free' && (
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -627,6 +815,7 @@ function HomePage() {
             </div>
           </div>
         </motion.div>
+        )}
 
         {showVocationalTestUi && (
           <motion.div
@@ -900,7 +1089,7 @@ function HomePage() {
 
       {/* Footer — flows with content, at the very end */}
       <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        OpenMAIC Open Source Project
+        Katalyst AI Open Source Project
       </div>
     </div>
   );

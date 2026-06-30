@@ -342,7 +342,7 @@
       "panRight": "Pan right",
       "collapseAxis": "Collapse to axis",
       "expandTrack": "Expand track",
-      "emptyHint": "Drag actions onto the axis to start, or let MAIC Agent generate narration.",
+      "emptyHint": "Drag actions onto the axis to start, or let Katalyst AI Agent generate narration.",
       "speechPlaceholder": "Enter this narration line…",
       "reorder": "Drag to reorder",
       "moveLeft": "Move left",

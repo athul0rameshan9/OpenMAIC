@@ -489,6 +489,8 @@ function GenerationPreviewContent() {
                 pdfImages: currentSession.pdfImages,
                 imageMapping,
                 researchContext: currentSession.researchContext,
+                ragContext: currentSession.ragContext,
+                textbookTitle: currentSession.textbookTitle,
               }),
             ),
             signal,

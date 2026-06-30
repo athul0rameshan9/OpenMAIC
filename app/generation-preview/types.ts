@@ -6,6 +6,7 @@ import type {
   PdfImage,
   ImageMapping,
 } from '@/lib/types/generation';
+import type { TextbookChunk } from '@/lib/types/textbook';
 
 // Session state stored in sessionStorage
 export interface GenerationSessionState {
@@ -32,6 +33,11 @@ export interface GenerationSessionState {
   courseTitle?: string;
   // Server-effective vocational mode from the outline generation done event.
   taskEngineMode?: boolean;
+  // Textbook-grounded generation (RAG context)
+  textbookId?: string;
+  textbookTitle?: string;
+  ragChunks?: TextbookChunk[];
+  ragContext?: string;
 }
 
 export type GenerationStep = {

@@ -11,7 +11,7 @@
 export const DEFAULT_LANGUAGE = 'en';
 
 /** All locales, in sidebar / language-switcher order. */
-export const LANGUAGES = ['en', 'zh-cn', 'zh-tw', 'ja', 'ru', 'ar'];
+export const LANGUAGES = ['en'];
 
 // Orama tokenizer discriminator per locale. Each search side (build index in
 // app/static.json/route.ts and client query in components/search-dialog.tsx)
@@ -24,11 +24,6 @@ export const LANGUAGES = ['en', 'zh-cn', 'zh-tw', 'ja', 'ru', 'ar'];
 /** @type {Record<string, 'mandarin' | 'japanese' | 'english' | 'russian' | 'arabic'>} */
 export const ORAMA_TOKENIZER = {
   en: 'english',
-  'zh-cn': 'mandarin',
-  'zh-tw': 'mandarin',
-  ja: 'japanese',
-  ru: 'russian',
-  ar: 'arabic',
 };
 
 /** Next.js basePath the docs site is mounted under. */
@@ -37,12 +32,7 @@ export const DOCS_BASE_PATH = '/docs';
 /** Human label per locale, shown in the language switcher (displayName). */
 export const LOCALE_LABELS = {
   en: 'English',
-  'zh-cn': '简体中文',
-  'zh-tw': '繁體中文',
-  ja: '日本語',
-  ru: 'Русский',
-  ar: 'العربية',
 };
 
 /** Right-to-left locales. */
-export const RTL_LOCALES = ['ar'];
+export const RTL_LOCALES = [];

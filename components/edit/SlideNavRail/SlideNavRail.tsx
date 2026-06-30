@@ -385,7 +385,7 @@ export function SlideNavRail() {
             title={t('generation.backToHome')}
             className="flex items-center gap-2 cursor-pointer rounded-lg px-1.5 -mx-1.5 py-1 -my-1 hover:bg-gray-100/80 dark:hover:bg-gray-800/60 active:scale-[0.97] transition-all duration-150"
           >
-            <img src="/logo-horizontal.png" alt="OpenMAIC" className="h-6" />
+            <img src="/logo-horizontal.png" alt="Katalyst AI" className="h-6" />
           </button>
         )}
         <div className={cn('flex items-center gap-1', collapsed && 'flex-col')}>
