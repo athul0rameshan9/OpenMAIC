@@ -1444,6 +1444,29 @@ export function getModel(config: ModelConfig): ModelWithInfo {
         baseURL: effectiveBaseUrl,
       };
 
+      // Azure OpenAI endpoints require an `api-version` query parameter on
+      // every request.  The generic @ai-sdk/openai provider does not add it,
+      // so we inject it via a thin fetch wrapper when the base URL looks like
+      // an Azure OpenAI endpoint (*.openai.azure.com).
+      const isAzureEndpoint =
+        effectiveBaseUrl && /\.openai\.azure\.com/i.test(effectiveBaseUrl);
+      if (config.providerId === 'openai' && isAzureEndpoint) {
+        const azureApiVersion =
+          process.env.AZURE_OPENAI_API_VERSION || '2025-04-01-preview';
+        openaiOptions.headers = { 'api-key': effectiveApiKey };
+        const azureFetch = async (
+          url: RequestInfo | URL,
+          init?: RequestInit,
+        ) => {
+          const urlObj = new URL(typeof url === 'string' ? url : url instanceof URL ? url.toString() : (url as Request).url);
+          if (!urlObj.searchParams.has('api-version')) {
+            urlObj.searchParams.set('api-version', azureApiVersion);
+          }
+          return globalThis.fetch(urlObj.toString(), init);
+        };
+        openaiOptions.fetch = azureFetch as typeof globalThis.fetch;
+      }
+
       // For OpenAI-compatible providers (not native OpenAI), add a fetch
       // wrapper that injects vendor-specific thinking params into the HTTP
       // body. The thinking config is read from AsyncLocalStorage, set by
