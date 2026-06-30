@@ -8,7 +8,6 @@ import {
   BookOpen,
   Check,
   ChevronDown,
-  Clock,
   Copy,
   ImagePlus,
   Pencil,
@@ -431,7 +430,8 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center p-4 pt-16 md:p-8 md:pt-16 overflow-x-hidden">
+    <div className="h-[100dvh] w-full flex flex-col overflow-hidden bg-background">
+      {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
         type="file"
@@ -448,88 +448,7 @@ function HomePage() {
           className="hidden"
         />
       )}
-      {/* ═══ Top-right pill (unchanged) ═══ */}
-      <div
-        ref={toolbarRef}
-        className="fixed top-4 right-4 z-50 flex items-center gap-1 bg-white/60 dark:bg-gray-800/60 backdrop-blur-md px-2 py-1.5 rounded-full border border-gray-100/50 dark:border-gray-700/50 shadow-sm"
-      >
-        {/* Language Selector */}
-        <LanguageSwitcher onOpen={() => setThemeOpen(false)} />
 
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
-
-        {/* Theme Selector */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setThemeOpen(!themeOpen);
-            }}
-            className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all"
-          >
-            {theme === 'light' && <Sun className="w-4 h-4" />}
-            {theme === 'dark' && <Moon className="w-4 h-4" />}
-            {theme === 'system' && <Monitor className="w-4 h-4" />}
-          </button>
-          {themeOpen && (
-            <div className="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
-              <button
-                onClick={() => {
-                  setTheme('light');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'light' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Sun className="w-4 h-4" />
-                {t('settings.themeOptions.light')}
-              </button>
-              <button
-                onClick={() => {
-                  setTheme('dark');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'dark' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Moon className="w-4 h-4" />
-                {t('settings.themeOptions.dark')}
-              </button>
-              <button
-                onClick={() => {
-                  setTheme('system');
-                  setThemeOpen(false);
-                }}
-                className={cn(
-                  'w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2',
-                  theme === 'system' &&
-                    'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-                )}
-              >
-                <Monitor className="w-4 h-4" />
-                {t('settings.themeOptions.system')}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="w-[1px] h-4 bg-gray-200 dark:bg-gray-700" />
-
-        {/* Settings Button */}
-        <div className="relative">
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="p-2 rounded-full text-gray-400 dark:text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-gray-200 hover:shadow-sm transition-all group"
-          >
-            <Settings className="w-4 h-4 group-hover:rotate-90 transition-transform duration-500" />
-          </button>
-        </div>
-      </div>
       <SettingsDialog
         open={settingsOpen}
         onOpenChange={(open) => {
@@ -539,97 +458,145 @@ function HomePage() {
         initialSection={settingsSection}
       />
 
-      {/* ═══ Background Decor ═══ */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '4s' }}
-        />
-        <div
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '6s' }}
-        />
-      </div>
-
-      {/* ═══ Hero section: title + input (centered, wider) ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className={cn(
-          'relative z-20 w-full flex flex-col items-center',
-          activeTab === 'textbook' ? 'max-w-[1100px]' : 'max-w-[800px]',
-          classrooms.length === 0 ? 'justify-center min-h-[calc(100dvh-8rem)]' : 'mt-[10vh]',
-        )}
-      >
-        {/* ── Logo ── */}
-        <motion.img
-          src="/logo-horizontal.png"
-          alt="Katalyst AI"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            delay: 0.1,
-            type: 'spring',
-            stiffness: 200,
-            damping: 20,
-          }}
-          className="h-12 md:h-16 mb-2 -ml-2 md:-ml-3"
-        />
-
-        {/* ── Slogan ── */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="text-sm text-muted-foreground/60 mb-8"
-        >
+      {/* ═══ Top Bar ═══ */}
+      <header className="flex items-center justify-between px-5 h-[52px] border-b border-border bg-muted/30 shrink-0">
+        <div className="flex items-center gap-2">
+          <img src="/logo-horizontal.png" alt="Katalyst" className="h-35" />
+        </div>
+        <span className="text-xs text-muted-foreground hidden md:block">
           {t('home.slogan')}
-        </motion.p>
-
-        {/* ── Tab Switcher ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="w-full flex items-center gap-1 mb-4 bg-muted/50 p-1 rounded-lg max-w-[320px]"
-        >
-          <button
-            onClick={() => setActiveTab('textbook')}
-            className={cn(
-              'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all',
-              activeTab === 'textbook'
-                ? 'bg-background shadow-sm text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
+        </span>
+        <div ref={toolbarRef} className="flex items-center gap-2">
+          {/* Search */}
+          <AnimatePresence initial={false}>
+            {!searchOpen ? (
+              <button
+                ref={searchButtonRef}
+                onClick={() => {
+                  setSearchOpen(true);
+                  requestAnimationFrame(() => searchInputRef.current?.focus());
+                }}
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <Search className="size-4" />
+              </button>
+            ) : (
+              <motion.div
+                key="search-input"
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: 180 }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.18 }}
+                className="overflow-hidden"
+              >
+                <InputGroup className="h-7 text-[12px] rounded-md bg-muted/40 border-transparent shadow-none">
+                  <InputGroupInput
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        e.preventDefault();
+                        if (searchQuery) setSearchQuery('');
+                        else {
+                          setSearchOpen(false);
+                          requestAnimationFrame(() => searchButtonRef.current?.focus());
+                        }
+                      }
+                    }}
+                    onBlur={() => { if (!searchQuery) setSearchOpen(false); }}
+                    placeholder={t('classroom.searchPlaceholder')}
+                    className="h-7 pl-2 placeholder:text-muted-foreground/50"
+                  />
+                  {searchQuery && (
+                    <InputGroupButton
+                      size="icon-xs"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
+                    >
+                      <X />
+                    </InputGroupButton>
+                  )}
+                </InputGroup>
+              </motion.div>
             )}
-          >
-            From Textbook
-          </button>
-          <button
-            onClick={() => setActiveTab('free')}
-            className={cn(
-              'flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all',
-              activeTab === 'free'
-                ? 'bg-background shadow-sm text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            Free Prompt
-          </button>
-        </motion.div>
+          </AnimatePresence>
 
-        {/* ═══ FROM TEXTBOOK TAB ═══ */}
-        {activeTab === 'textbook' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.35 }}
-            className="w-full max-w-[1100px]"
+          {/* Theme toggle */}
+          <div className="relative">
+            <button
+              onClick={() => setThemeOpen(!themeOpen)}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {theme === 'light' && <Sun className="size-4" />}
+              {theme === 'dark' && <Moon className="size-4" />}
+              {theme === 'system' && <Monitor className="size-4" />}
+            </button>
+            {themeOpen && (
+              <div className="absolute top-full mt-2 right-0 bg-popover border border-border rounded-lg shadow-lg overflow-hidden z-50 min-w-[140px]">
+                <button onClick={() => { setTheme('light'); setThemeOpen(false); }} className={cn('w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors flex items-center gap-2', theme === 'light' && 'text-primary bg-primary/5')}>
+                  <Sun className="size-3.5" /> {t('settings.themeOptions.light')}
+                </button>
+                <button onClick={() => { setTheme('dark'); setThemeOpen(false); }} className={cn('w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors flex items-center gap-2', theme === 'dark' && 'text-primary bg-primary/5')}>
+                  <Moon className="size-3.5" /> {t('settings.themeOptions.dark')}
+                </button>
+                <button onClick={() => { setTheme('system'); setThemeOpen(false); }} className={cn('w-full px-3 py-2 text-left text-xs hover:bg-muted transition-colors flex items-center gap-2', theme === 'system' && 'text-primary bg-primary/5')}>
+                  <Monitor className="size-3.5" /> {t('settings.themeOptions.system')}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Language */}
+          <LanguageSwitcher onOpen={() => setThemeOpen(false)} />
+
+          {/* Settings */}
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           >
-            <div className="flex gap-4 w-full">
-              {/* Left panel: Textbook browser */}
-              <div className="w-[340px] shrink-0 max-h-[500px] overflow-y-auto rounded-xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3">
-                <p className="text-xs font-medium text-muted-foreground mb-2">Select a textbook</p>
+            <Settings className="size-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* ═══ Main: Left Sidebar + Right Content ═══ */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── Left Sidebar ── */}
+        <aside className="w-[260px] shrink-0 border-r border-border flex flex-col bg-muted/20">
+          {/* Tab row */}
+          <div className="flex gap-1 p-2 border-b border-border">
+            <button
+              onClick={() => setActiveTab('textbook')}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-xs transition-all',
+                activeTab === 'textbook'
+                  ? 'bg-background text-foreground border border-border shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              From textbook
+            </button>
+            <button
+              onClick={() => setActiveTab('free')}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-xs transition-all',
+                activeTab === 'free'
+                  ? 'bg-background text-foreground border border-border shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              Free prompt
+            </button>
+          </div>
+
+          {/* Sidebar content */}
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === 'textbook' ? (
+              <div className="p-2">
+                <p className="px-2 pt-2 pb-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                  Your textbooks
+                </p>
                 <TextbookBrowser
                   selectedTextbook={selectedTextbook}
                   onSelectTextbook={(tb) => {
@@ -639,457 +606,368 @@ function HomePage() {
                   }}
                 />
               </div>
-
-              {/* Right panel: Prompt + chunks + generate */}
-              <div className="flex-1 min-w-0 flex flex-col gap-3">
-                {/* Selected textbook indicator */}
-                {selectedTextbook && (
-                  <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
-                    <BookOpen className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-xs font-medium truncate">{selectedTextbook.title}</span>
-                    <button
-                      onClick={() => { setSelectedTextbook(null); setShowChunkPreview(false); resetChunks(); }}
-                      className="ml-auto shrink-0"
+            ) : (
+              <div className="p-2">
+                <p className="px-2 pt-2 pb-1.5 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                  Recent classrooms
+                </p>
+                <div className="space-y-0.5">
+                  {filteredClassrooms.map((classroom) => (
+                    <div
+                      key={classroom.id}
+                      onClick={() => router.push(`/classroom/${classroom.id}`)}
+                      className="rounded-lg p-2.5 cursor-pointer hover:bg-muted/60 transition-colors"
                     >
-                      <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Prompt textarea */}
-                <div className="rounded-xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3">
-                  <textarea
-                    placeholder={selectedTextbook ? `What would you like to learn from "${selectedTextbook.title}"?` : 'Select a textbook first...'}
-                    className="w-full resize-none border-0 bg-transparent text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[100px] max-h-[200px]"
-                    value={textbookPrompt}
-                    onChange={(e) => { setTextbookPrompt(e.target.value); setShowChunkPreview(false); }}
-                    onKeyDown={handleKeyDown}
-                    disabled={!selectedTextbook}
-                    rows={3}
-                  />
-                  <div className="flex items-center justify-end gap-2 mt-2">
-                    {!showChunkPreview ? (
-                      <button
-                        onClick={handleSearchTextbook}
-                        disabled={!canGenerateFromTextbook}
-                        className={cn(
-                          'h-8 rounded-lg flex items-center gap-1.5 px-3 text-xs font-medium transition-all',
-                          canGenerateFromTextbook
-                            ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
-                            : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
-                        )}
-                      >
-                        <Search className="size-3.5" />
-                        Search & Preview
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleGenerateFromTextbook}
-                        disabled={!canGenerateFromTextbook || chunks.length === 0}
-                        className={cn(
-                          'h-8 rounded-lg flex items-center gap-1.5 px-3 text-xs font-medium transition-all',
-                          canGenerateFromTextbook && chunks.length > 0
-                            ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
-                            : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
-                        )}
-                      >
-                        <ArrowUp className="size-3.5" />
-                        Generate Classroom
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Chunk preview */}
-                {showChunkPreview && (
-                  <div className="rounded-xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 max-h-[250px] overflow-y-auto">
-                    <ChunkPreview chunks={chunks} loading={chunksLoading} error={chunksError} />
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ═══ FREE PROMPT TAB (existing UI) ═══ */}
-        {activeTab === 'free' && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.35 }}
-          className="w-full"
-        >
-          <div className="w-full rounded-2xl border border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl shadow-black/[0.03] dark:shadow-black/20 transition-shadow focus-within:shadow-2xl focus-within:shadow-violet-500/[0.06]">
-            {/* ── Greeting + Profile + Agents ── */}
-            <div className="relative z-20 flex items-start justify-between">
-              <GreetingBar />
-              <div className="pr-3 pt-3.5 shrink-0">
-                <AgentBar />
-              </div>
-            </div>
-
-            {/* Textarea */}
-            <textarea
-              ref={textareaRef}
-              placeholder={t('upload.requirementPlaceholder')}
-              className="w-full resize-none border-0 bg-transparent px-4 pt-1 pb-2 text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[140px] max-h-[300px]"
-              value={form.requirement}
-              onChange={(e) => updateForm('requirement', e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={4}
-            />
-
-            {/* Toolbar row */}
-            <div className="px-3 pb-3 flex items-end gap-2">
-              <div className="flex-1 min-w-0">
-                <GenerationToolbar
-                  webSearch={form.webSearch}
-                  onWebSearchChange={(v) => updateForm('webSearch', v)}
-                  onSettingsOpen={(section) => {
-                    setSettingsSection(section);
-                    setSettingsOpen(true);
-                  }}
-                  pdfFile={form.pdfFile}
-                  onPdfFileChange={(f) => updateForm('pdfFile', f)}
-                  onPdfError={setError}
-                />
-              </div>
-
-              {/* Interactive mode toggle */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                    onClick={() => updateForm('interactiveMode', !form.interactiveMode)}
-                    className={cn(
-                      'relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all cursor-pointer select-none whitespace-nowrap border shrink-0 h-8',
-                      form.interactiveMode
-                        ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 border-cyan-500 shadow-[0_0_12px_rgba(6,182,212,0.35)] dark:shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                        : 'border-cyan-300/60 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20',
-                    )}
-                  >
-                    {form.interactiveMode && (
-                      <span
-                        className="absolute inset-[-4px] rounded-full border border-cyan-400/40 dark:border-cyan-400/25"
-                        style={{
-                          animation: 'interactive-mode-breathe 2s ease-in-out infinite',
-                        }}
-                      />
-                    )}
-                    <Atom className="size-3.5 relative z-10 animate-[spin_3s_linear_infinite]" />
-                    <span className="relative z-10">{t('toolbar.interactiveModeLabel')}</span>
-                  </motion.button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  {t('toolbar.interactiveModeHint')}
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Voice input */}
-              <SpeechButton
-                size="md"
-                onTranscription={(text) => {
-                  setForm((prev) => {
-                    const next = prev.requirement + (prev.requirement ? ' ' : '') + text;
-                    updateRequirementCache(next);
-                    return { ...prev, requirement: next };
-                  });
-                }}
-              />
-
-              {/* Send button */}
-              <button
-                onClick={handleGenerate}
-                disabled={!canGenerate}
-                className={cn(
-                  'shrink-0 h-8 rounded-lg flex items-center justify-center gap-1.5 transition-all px-3',
-                  canGenerate
-                    ? 'bg-primary text-primary-foreground hover:opacity-90 shadow-sm cursor-pointer'
-                    : 'bg-muted text-muted-foreground/40 cursor-not-allowed',
-                )}
-              >
-                <span className="text-xs font-medium">{t('toolbar.enterClassroom')}</span>
-                <ArrowUp className="size-3.5" />
-              </button>
-            </div>
-          </div>
-        </motion.div>
-        )}
-
-        {showVocationalTestUi && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="mt-2 flex w-full justify-start px-1"
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={form.vocationalTestMode}
-                  onClick={() => updateForm('vocationalTestMode', !form.vocationalTestMode)}
-                  className={cn(
-                    'inline-flex h-7 items-center gap-2 rounded-full border px-2.5 text-[11px] font-medium transition-colors',
-                    form.vocationalTestMode
-                      ? 'border-cyan-400/70 bg-cyan-50 text-cyan-700 shadow-[0_0_10px_rgba(6,182,212,0.16)] dark:bg-cyan-950/40 dark:text-cyan-300'
-                      : 'border-border/70 bg-background/70 text-muted-foreground hover:border-cyan-300/60 hover:text-cyan-700 dark:hover:text-cyan-300',
+                      <p className="text-[13px] font-medium text-foreground truncate">{classroom.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {classroom.sceneCount} {t('classroom.slides')} · {formatDate(classroom.updatedAt)}
+                      </p>
+                    </div>
+                  ))}
+                  {classrooms.length === 0 && (
+                    <p className="text-xs text-muted-foreground/60 px-2 py-4">No classrooms yet</p>
                   )}
-                >
-                  <span className="rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-normal text-cyan-700 dark:bg-cyan-900/45 dark:text-cyan-300">
-                    测试功能
-                  </span>
-                  <Sparkles className="size-3.5" />
-                  <span>职教任务</span>
-                  <span
-                    className={cn(
-                      'relative h-3.5 w-6 rounded-full transition-colors',
-                      form.vocationalTestMode ? 'bg-cyan-500' : 'bg-muted-foreground/25',
-                    )}
+                </div>
+                {/* Import buttons */}
+                <div className="mt-3 flex items-center gap-2 px-2">
+                  <button
+                    onClick={triggerFileSelect}
+                    disabled={importing}
+                    className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <span
-                      className={cn(
-                        'absolute top-0.5 size-2.5 rounded-full bg-white transition-transform',
-                        form.vocationalTestMode ? 'translate-x-3' : 'translate-x-0.5',
-                      )}
-                    />
-                  </span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                从当前输入框提交职教实操训练测试
-              </TooltipContent>
-            </Tooltip>
-          </motion.div>
-        )}
-
-        {/* ── Error ── */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-3 w-full p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
-            >
-              <p className="text-sm text-destructive">{error}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Import buttons (empty state) ── */}
-        {classrooms.length === 0 && (
-          <div className="relative z-10 mt-4 flex items-center gap-4">
-            <button
-              onClick={triggerFileSelect}
-              disabled={importing}
-              className="flex items-center gap-1.5 text-[12px] text-muted-foreground/40 hover:text-foreground/60 transition-colors"
-            >
-              <Upload className="size-3.5" />
-              <span>{t('import.classroom')}</span>
-            </button>
-            {PPTX_IMPORT_ENABLED && (
-              <button
-                onClick={triggerPptxFileSelect}
-                disabled={pptxImporting}
-                className="flex items-center gap-1.5 text-[12px] text-muted-foreground/40 hover:text-foreground/60 transition-colors"
-              >
-                <Presentation className="size-3.5" />
-                <span>{t('import.pptx')}</span>
-              </button>
+                    <Upload className="size-3" />
+                    {t('import.classroom')}
+                  </button>
+                  {PPTX_IMPORT_ENABLED && (
+                    <button
+                      onClick={triggerPptxFileSelect}
+                      disabled={pptxImporting}
+                      className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Presentation className="size-3" />
+                      {t('import.pptx')}
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
           </div>
-        )}
-      </motion.div>
+        </aside>
 
-      {/* ═══ Recent classrooms — collapsible ═══ */}
-      {classrooms.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="relative z-10 mt-10 w-full max-w-6xl flex flex-col items-center"
-        >
-          {/* Trigger — divider-line with centered text */}
-          <div className="group w-full flex items-center gap-4 py-2">
-            <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
-            <div className="shrink-0 flex items-center gap-3 text-[13px] text-muted-foreground/60 select-none">
-              <button
-                onClick={() => persistRecentOpen(!recentOpen)}
-                className="flex items-center gap-2 hover:text-foreground/70 transition-colors cursor-pointer"
-              >
-                <Clock className="size-3.5" />
-                {t('classroom.recentClassrooms')}
-                <span className="text-[11px] tabular-nums opacity-60">{classrooms.length}</span>
-                <motion.div
-                  animate={{ rotate: recentOpen ? 180 : 0 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                >
-                  <ChevronDown className="size-3.5" />
-                </motion.div>
-              </button>
+        {/* ── Right Content ── */}
+        <main className="flex-1 flex flex-col overflow-hidden bg-muted/10">
+          {/* Right header */}
+          <div className="px-5 pt-4 pb-3 border-b border-border shrink-0">
+            {activeTab === 'textbook' && selectedTextbook ? (
+              <>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+                  <span>{selectedTextbook.title}</span>
+                  <ChevronDown className="size-3 rotate-[-90deg]" />
+                  <span>Ask</span>
+                </div>
+                <h1 className="text-[17px] font-medium text-foreground">{selectedTextbook.title}</h1>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+                  <span>Katalyst</span>
+                  <ChevronDown className="size-3 rotate-[-90deg]" />
+                  <span>{activeTab === 'textbook' ? 'Textbook' : 'Free prompt'}</span>
+                </div>
+                <h1 className="text-[17px] font-medium text-foreground">
+                  {activeTab === 'textbook' ? 'Select a textbook to get started' : 'Create a new classroom'}
+                </h1>
+              </>
+            )}
+          </div>
 
-              {/* Search toggle — icon that expands into an input in place */}
-              <AnimatePresence initial={false}>
-                {!searchOpen ? (
-                  <motion.button
-                    key="search-icon"
-                    ref={searchButtonRef}
-                    type="button"
-                    aria-label={t('classroom.searchAriaLabel')}
-                    onClick={() => {
-                      setSearchOpen(true);
-                      if (!recentOpen) persistRecentOpen(true);
-                      requestAnimationFrame(() => searchInputRef.current?.focus());
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.12, ease: 'easeOut' }}
-                    className="flex items-center justify-center size-6 rounded-full text-muted-foreground/50 hover:text-foreground/70 hover:bg-muted/50 transition-colors cursor-pointer"
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-5">
+              {/* Mode toggle buttons */}
+              {activeTab === 'free' && (
+                <div className="flex gap-1.5 mb-4">
+                  <button
+                    onClick={() => updateForm('interactiveMode', false)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-md text-xs border transition-all',
+                      !form.interactiveMode
+                        ? 'bg-primary/10 text-primary border-primary/30'
+                        : 'bg-background text-muted-foreground border-border hover:border-border/80',
+                    )}
                   >
-                    <Search className="size-3.5" />
-                  </motion.button>
-                ) : (
-                  <motion.div
-                    key="search-input"
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 200 }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-                    className="overflow-hidden"
+                    Generate slides
+                  </button>
+                  <button
+                    onClick={() => updateForm('interactiveMode', true)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-md text-xs border transition-all',
+                      form.interactiveMode
+                        ? 'bg-primary/10 text-primary border-primary/30'
+                        : 'bg-background text-muted-foreground border-border hover:border-border/80',
+                    )}
                   >
-                    <InputGroup
+                    {t('toolbar.interactiveModeLabel')}
+                  </button>
+                  {showVocationalTestUi && (
+                    <button
+                      onClick={() => updateForm('vocationalTestMode', !form.vocationalTestMode)}
                       className={cn(
-                        'h-7 text-[12px] rounded-full bg-muted/40 border-transparent shadow-none',
-                        'transition-colors',
-                        'hover:bg-muted/60',
-                        'has-[[data-slot=input-group-control]:focus-visible]:bg-muted/60',
-                        'has-[[data-slot=input-group-control]:focus-visible]:border-transparent',
-                        'has-[[data-slot=input-group-control]:focus-visible]:ring-0',
+                        'px-3 py-1.5 rounded-md text-xs border transition-all',
+                        form.vocationalTestMode
+                          ? 'bg-primary/10 text-primary border-primary/30'
+                          : 'bg-background text-muted-foreground border-border hover:border-border/80',
                       )}
                     >
-                      <InputGroupInput
-                        ref={searchInputRef}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Escape') {
-                            e.preventDefault();
-                            if (searchQuery) {
-                              setSearchQuery('');
-                            } else {
-                              setSearchOpen(false);
-                              requestAnimationFrame(() => searchButtonRef.current?.focus());
-                            }
-                          }
-                        }}
-                        onBlur={() => {
-                          if (!searchQuery) {
-                            setSearchOpen(false);
-                          }
-                        }}
-                        placeholder={t('classroom.searchPlaceholder')}
-                        aria-label={t('classroom.searchAriaLabel')}
-                        className="h-7 pl-3 placeholder:text-muted-foreground/50"
+                      职教任务
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* ═══ Prompt Area ═══ */}
+              {activeTab === 'textbook' ? (
+                <div className="space-y-3">
+                  {/* Selected textbook pill */}
+                  {selectedTextbook && (
+                    <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                      <BookOpen className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-xs font-medium truncate">{selectedTextbook.title}</span>
+                      <button
+                        onClick={() => { setSelectedTextbook(null); setShowChunkPreview(false); resetChunks(); }}
+                        className="ml-auto shrink-0"
+                      >
+                        <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Prompt box */}
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-[13px] text-muted-foreground mb-2 leading-relaxed">
+                      {selectedTextbook
+                        ? `What would you like to learn from "${selectedTextbook.title}"?`
+                        : 'Select a textbook from the sidebar to get started.'}
+                    </p>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        placeholder="e.g. Explain sample space with an example…"
+                        className="flex-1 h-9 rounded-md border border-border bg-muted/30 px-3 text-[13px] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50"
+                        value={textbookPrompt}
+                        onChange={(e) => { setTextbookPrompt(e.target.value); setShowChunkPreview(false); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!showChunkPreview) handleSearchTextbook(); else if (chunks.length > 0) handleGenerateFromTextbook(); } }}
+                        disabled={!selectedTextbook}
                       />
-                      {searchQuery && (
-                        <InputGroupButton
-                          size="icon-xs"
-                          aria-label={t('classroom.clearSearch')}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            setSearchQuery('');
-                            searchInputRef.current?.focus();
-                          }}
+                      {!showChunkPreview ? (
+                        <button
+                          onClick={handleSearchTextbook}
+                          disabled={!canGenerateFromTextbook}
+                          className={cn(
+                            'h-9 rounded-md flex items-center gap-1.5 px-3 text-xs font-medium border transition-all whitespace-nowrap',
+                            canGenerateFromTextbook
+                              ? 'bg-primary text-primary-foreground border-primary hover:opacity-90 cursor-pointer'
+                              : 'bg-muted text-muted-foreground/40 border-border cursor-not-allowed',
+                          )}
                         >
-                          <X />
-                        </InputGroupButton>
+                          <Search className="size-3.5" />
+                          Search
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleGenerateFromTextbook}
+                          disabled={!canGenerateFromTextbook || chunks.length === 0}
+                          className={cn(
+                            'h-9 rounded-md flex items-center gap-1.5 px-3 text-xs font-medium border transition-all whitespace-nowrap',
+                            canGenerateFromTextbook && chunks.length > 0
+                              ? 'bg-primary text-primary-foreground border-primary hover:opacity-90 cursor-pointer'
+                              : 'bg-muted text-muted-foreground/40 border-border cursor-not-allowed',
+                          )}
+                        >
+                          <ArrowUp className="size-3.5" />
+                          Generate
+                        </button>
                       )}
-                    </InputGroup>
+                    </div>
+                  </div>
+
+                  {/* Chunk preview */}
+                  {showChunkPreview && (
+                    <div className="rounded-xl border border-border bg-background p-3 max-h-[250px] overflow-y-auto">
+                      <ChunkPreview chunks={chunks} loading={chunksLoading} error={chunksError} />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Free prompt mode */
+                <div className="space-y-3">
+                  {/* Prompt box */}
+                  <div className="rounded-xl border border-border bg-background p-3 min-h-[72px]">
+                    <div className="relative z-20 flex items-start justify-between mb-2">
+                      <GreetingBar />
+                      <div className="shrink-0">
+                        <AgentBar />
+                      </div>
+                    </div>
+                    <textarea
+                      ref={textareaRef}
+                      placeholder={t('upload.requirementPlaceholder')}
+                      className="w-full resize-none border-0 bg-transparent text-[13px] leading-relaxed placeholder:text-muted-foreground/40 focus:outline-none min-h-[80px] max-h-[200px]"
+                      value={form.requirement}
+                      onChange={(e) => updateForm('requirement', e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Action row */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <GenerationToolbar
+                        webSearch={form.webSearch}
+                        onWebSearchChange={(v) => updateForm('webSearch', v)}
+                        onSettingsOpen={(section) => {
+                          setSettingsSection(section);
+                          setSettingsOpen(true);
+                        }}
+                        pdfFile={form.pdfFile}
+                        onPdfFileChange={(f) => updateForm('pdfFile', f)}
+                        onPdfError={setError}
+                      />
+                    </div>
+                    <SpeechButton
+                      size="md"
+                      onTranscription={(text) => {
+                        setForm((prev) => {
+                          const next = prev.requirement + (prev.requirement ? ' ' : '') + text;
+                          updateRequirementCache(next);
+                          return { ...prev, requirement: next };
+                        });
+                      }}
+                    />
+                    <button
+                      onClick={handleGenerate}
+                      disabled={!canGenerate}
+                      className={cn(
+                        'shrink-0 h-9 rounded-md flex items-center justify-center gap-1.5 transition-all px-3 border',
+                        canGenerate
+                          ? 'bg-primary text-primary-foreground border-primary hover:opacity-90 cursor-pointer'
+                          : 'bg-muted text-muted-foreground/40 border-border cursor-not-allowed',
+                      )}
+                    >
+                      <ArrowUp className="size-3.5" />
+                      <span className="text-xs font-medium">{t('toolbar.enterClassroom')}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"
+                  >
+                    <p className="text-sm text-destructive">{error}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <button
-                onClick={triggerFileSelect}
-                disabled={importing}
-                className="group/import grid grid-cols-[auto_0fr] hover:grid-cols-[auto_1fr] items-center gap-1 rounded-full px-1.5 py-0.5 text-[12px] text-muted-foreground/35 hover:text-muted-foreground/70 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
-              >
-                <Upload className="size-3" />
-                <span className="overflow-hidden opacity-0 group-hover/import:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                  {t('import.classroom')}
-                </span>
-              </button>
-              {PPTX_IMPORT_ENABLED && (
-                <button
-                  onClick={triggerPptxFileSelect}
-                  disabled={pptxImporting}
-                  className="group/import-pptx grid grid-cols-[auto_0fr] hover:grid-cols-[auto_1fr] items-center gap-1 rounded-full px-1.5 py-0.5 text-[12px] text-muted-foreground/35 hover:text-muted-foreground/70 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
-                >
-                  <Presentation className="size-3" />
-                  <span className="overflow-hidden opacity-0 group-hover/import-pptx:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                    {t('import.pptx')}
-                  </span>
-                </button>
+              {/* ═══ Divider ═══ */}
+              {classrooms.length > 0 && (
+                <>
+                  <div className="h-px bg-border my-5" />
+
+                  {/* Section label */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                      Recent sessions
+                    </span>
+                    <span className="text-[11px] font-medium bg-muted border border-border px-2 py-0.5 rounded-full text-muted-foreground">
+                      {classrooms.length}
+                    </span>
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        onClick={triggerFileSelect}
+                        disabled={importing}
+                        className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                      >
+                        <Upload className="size-3" />
+                        {t('import.classroom')}
+                      </button>
+                      {PPTX_IMPORT_ENABLED && (
+                        <button
+                          onClick={triggerPptxFileSelect}
+                          disabled={pptxImporting}
+                          className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                        >
+                          <Presentation className="size-3" />
+                          {t('import.pptx')}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sessions grid */}
+                  {searchQuery.trim() && filteredClassrooms.length === 0 ? (
+                    <div className="py-8 text-center text-[13px] text-muted-foreground/60">
+                      {t('classroom.searchEmpty')}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                      {filteredClassrooms.map((classroom, i) => (
+                        <motion.div
+                          key={classroom.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03, duration: 0.3 }}
+                        >
+                          <ClassroomCard
+                            classroom={classroom}
+                            slide={thumbnails[classroom.id]}
+                            formatDate={formatDate}
+                            onDelete={handleDelete}
+                            onRename={handleRename}
+                            confirmingDelete={pendingDeleteId === classroom.id}
+                            onConfirmDelete={() => confirmDelete(classroom.id)}
+                            onCancelDelete={() => setPendingDeleteId(null)}
+                            onClick={() => router.push(`/classroom/${classroom.id}`)}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Empty state import buttons */}
+              {classrooms.length === 0 && activeTab === 'free' && (
+                <div className="mt-4 flex items-center gap-4">
+                  <button
+                    onClick={triggerFileSelect}
+                    disabled={importing}
+                    className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Upload className="size-3.5" />
+                    <span>{t('import.classroom')}</span>
+                  </button>
+                  {PPTX_IMPORT_ENABLED && (
+                    <button
+                      onClick={triggerPptxFileSelect}
+                      disabled={pptxImporting}
+                      className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Presentation className="size-3.5" />
+                      <span>{t('import.pptx')}</span>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
-            <div className="flex-1 h-px bg-border/40 group-hover:bg-border/70 transition-colors" />
           </div>
-
-          {/* Expandable content */}
-          <AnimatePresence>
-            {recentOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-                className="w-full overflow-hidden"
-              >
-                {searchQuery.trim() && filteredClassrooms.length === 0 ? (
-                  <div className="pt-8 pb-2 text-center text-[13px] text-muted-foreground/60">
-                    {t('classroom.searchEmpty')}
-                  </div>
-                ) : (
-                  <div className="pt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-8">
-                    {filteredClassrooms.map((classroom, i) => (
-                      <motion.div
-                        key={classroom.id}
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          delay: i * 0.04,
-                          duration: 0.35,
-                          ease: 'easeOut',
-                        }}
-                      >
-                        <ClassroomCard
-                          classroom={classroom}
-                          slide={thumbnails[classroom.id]}
-                          formatDate={formatDate}
-                          onDelete={handleDelete}
-                          onRename={handleRename}
-                          confirmingDelete={pendingDeleteId === classroom.id}
-                          onConfirmDelete={() => confirmDelete(classroom.id)}
-                          onCancelDelete={() => setPendingDeleteId(null)}
-                          onClick={() => router.push(`/classroom/${classroom.id}`)}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      )}
-
-      {/* Footer — flows with content, at the very end */}
-      <div className="mt-auto pt-12 pb-4 text-center text-xs text-muted-foreground/40">
-        Katalyst AI Open Source Project
+        </main>
       </div>
     </div>
   );
