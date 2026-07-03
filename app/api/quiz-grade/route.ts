@@ -53,17 +53,17 @@ export async function POST(req: NextRequest) {
     const isZh = language === 'zh-CN';
 
     const systemPrompt = isZh
-      ? `你是一位专业的教育评估专家。请根据题目和学生答案进行评分并给出简短评语。
-必须以如下 JSON 格式回复（不要包含其他内容）：
-{"score": <0到${points}的整数>, "comment": "<一两句评语>"}`
+      ? `You are a professional education assessment expert. Grade the student's answer and provide brief feedback.
+You must reply in the following JSON format (no other content):
+{"score": <integer from 0 to ${points}>, "comment": "<one or two sentences of feedback>"}`
       : `You are a professional educational assessor. Grade the student's answer and provide brief feedback.
 You must reply in the following JSON format only (no other content):
 {"score": <integer from 0 to ${points}>, "comment": "<one or two sentences of feedback>"}`;
 
     const userPrompt = isZh
-      ? `题目：${question}
-满分：${points}分
-${commentPrompt ? `评分要点：${commentPrompt}\n` : ''}学生答案：${userAnswer}`
+      ? `Question: ${question}
+Full marks: ${points}
+${commentPrompt ? `Grading criteria: ${commentPrompt}\n` : ''}Student answer: ${userAnswer}`
       : `Question: ${question}
 Full marks: ${points} points
 ${commentPrompt ? `Grading guidance: ${commentPrompt}\n` : ''}Student answer: ${userAnswer}`;
@@ -97,7 +97,7 @@ ${commentPrompt ? `Grading guidance: ${commentPrompt}\n` : ''}Student answer: ${
       gradeResult = {
         score: Math.round(points * 0.5),
         comment: isZh
-          ? '已作答，请参考标准答案。'
+          ? 'Answered. Please refer to the standard answer.'
           : 'Answer received. Please refer to the standard answer.',
       };
     }

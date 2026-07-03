@@ -9,7 +9,7 @@ const REVIEW_SETTINGS_STORAGE = createSettingsStorage({ reviewOutlineEnabled: tr
 const GENERATION_SESSION = JSON.stringify({
   sessionId: 'e2e-test-session',
   requirements: {
-    requirement: '讲解光合作用',
+    requirement: 'Explain photosynthesis',
     language: 'zh-CN',
   },
   pdfText: '',
@@ -22,7 +22,7 @@ const GENERATION_SESSION = JSON.stringify({
 const PERSISTED_REVIEW_SESSION = JSON.stringify({
   sessionId: 'e2e-review-session',
   requirements: {
-    requirement: '讲解光合作用',
+    requirement: 'Explain photosynthesis',
     language: 'zh-CN',
   },
   pdfText: '',

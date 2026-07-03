@@ -302,7 +302,7 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
 
   'qwen-tts': {
     id: 'qwen-tts',
-    name: 'Qwen TTS (阿里云百炼)',
+    name: 'Qwen TTS (Alibaba Cloud)',
     requiresApiKey: true,
     defaultBaseUrl: 'https://dashscope.aliyuncs.com/api/v1',
     icon: '/logos/bailian.svg',
@@ -762,7 +762,7 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
 
   'doubao-tts': {
     id: 'doubao-tts',
-    name: '豆包 TTS 2.0（火山引擎）',
+    name: 'Doubao TTS 2.0 (Volcengine)',
     requiresApiKey: true,
     defaultBaseUrl: 'https://openspeech.bytedance.com/api/v3/tts',
     icon: '/logos/doubao.svg',
@@ -930,7 +930,7 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
 
   'browser-native-tts': {
     id: 'browser-native-tts',
-    name: '浏览器原生 (Web Speech API)',
+    name: 'Browser Native (Web Speech API)',
     requiresApiKey: false,
     icon: '/logos/browser.svg',
     models: [],
@@ -938,7 +938,7 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
     voices: [
       // Note: Actual voices are determined by the browser and OS
       // These are placeholder - real voices are fetched dynamically via speechSynthesis.getVoices()
-      { id: 'default', name: '默认', language: 'zh-CN', gender: 'neutral' },
+      { id: 'default', name: 'Default', language: 'zh-CN', gender: 'neutral' },
     ],
     supportedFormats: ['browser'], // Browser native audio
     speedRange: { min: 0.1, max: 10.0, default: 1.0 },
@@ -1113,7 +1113,7 @@ export const ASR_PROVIDERS: Record<BuiltInASRProviderId, ASRProviderConfig> = {
 
   'qwen-asr': {
     id: 'qwen-asr',
-    name: 'Qwen ASR (阿里云百炼)',
+    name: 'Qwen ASR (Alibaba Cloud)',
     requiresApiKey: true,
     defaultBaseUrl: 'https://dashscope.aliyuncs.com/api/v1',
     icon: '/logos/bailian.svg',
@@ -1184,7 +1184,7 @@ export const ASR_PROVIDERS: Record<BuiltInASRProviderId, ASRProviderConfig> = {
 
   'browser-native': {
     id: 'browser-native',
-    name: '浏览器原生 ASR (Web Speech API)',
+    name: 'Browser Native ASR (Web Speech API)',
     requiresApiKey: false,
     icon: '/logos/browser.svg',
     models: [],

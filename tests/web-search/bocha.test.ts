@@ -21,7 +21,7 @@ describe('searchWithBocha', () => {
           log_id: 'log-ok',
           msg: null,
           data: {
-            queryContext: { originalQuery: '阿里巴巴 ESG' },
+            queryContext: { originalQuery: 'Alibaba ESG' },
             webPages: {
               value: [
                 {
@@ -44,7 +44,7 @@ describe('searchWithBocha', () => {
     );
 
     const result = await searchWithBocha({
-      query: '阿里巴巴 ESG',
+      query: 'Alibaba ESG',
       apiKey: 'bocha-key',
       maxResults: 100,
     });
@@ -58,14 +58,14 @@ describe('searchWithBocha', () => {
           Authorization: 'Bearer bocha-key',
         },
         body: JSON.stringify({
-          query: '阿里巴巴 ESG',
+          query: 'Alibaba ESG',
           freshness: 'noLimit',
           summary: true,
           count: 50,
         }),
       }),
     );
-    expect(result.query).toBe('阿里巴巴 ESG');
+    expect(result.query).toBe('Alibaba ESG');
     expect(result.answer).toBe('');
     expect(result.sources).toEqual([
       {

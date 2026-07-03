@@ -29,7 +29,7 @@ test.describe('Full Happy Path', () => {
     await expect(home.enterButton).toBeDisabled();
 
     // Fill requirement text → submit button activates
-    await home.fillRequirement('讲解光合作用');
+    await home.fillRequirement('Explain photosynthesis');
     await expect(home.enterButton).toBeEnabled();
 
     // Submit → navigate to generation-preview
@@ -54,7 +54,7 @@ test.describe('Full Happy Path', () => {
     await expect(classroom.sidebarScenes.first()).toBeVisible({ timeout: 10_000 });
 
     // First scene title should match mock data
-    await expect(classroom.getSceneTitle(0)).toContainText('光合作用');
+    await expect(classroom.getSceneTitle(0)).toContainText('Photosynthesis');
 
     // If more than one scene item is rendered, verify scene switching works
     const sceneCount = await classroom.sidebarScenes.count();

@@ -27,10 +27,10 @@ describe('buildVoiceDesignPrompt', () => {
     expect(
       buildVoiceDesignPrompt({
         identity: 'male teacher (deep)',
-        texture: '英文（带口音）',
+        texture: 'English (with accent)',
         delivery: 'calm',
       }),
-    ).toBe('male teacher deep, 英文 带口音, calm');
+    ).toBe('male teacher deep, English with accent, calm');
   });
 });
 

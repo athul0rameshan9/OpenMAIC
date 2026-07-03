@@ -14,7 +14,7 @@ describe('mergeAssistantParts (chronological)', () => {
           arguments: { sceneId: 's' },
         },
       ],
-      [{ type: 'text', text: '已为你重新生成讲解。' }],
+      [{ type: 'text', text: 'Narration regenerated for you.' }],
     ];
     const parts = mergeAssistantParts({ turns, toolResults: NO_RESULTS, error: '' });
     expect(parts.map((p) => p.type)).toEqual(['tool-call', 'text']);
@@ -23,7 +23,7 @@ describe('mergeAssistantParts (chronological)', () => {
   it('keeps in-turn ordering (text before tool call within the same turn)', () => {
     const turns: PiPart[][] = [
       [
-        { type: 'text', text: '我来重新生成。' },
+        { type: 'text', text: 'Let me regenerate.' },
         { type: 'toolCall', id: 't1', name: 'regenerate_scene_actions', arguments: {} },
       ],
     ];

@@ -31,7 +31,7 @@ test.describe('Slide content surface (#647)', () => {
       .getByRole('button', { name: /got it|知道了/i })
       .click({ timeout: 5_000 })
       .catch(() => {});
-    await home.fillRequirement('讲解光合作用');
+    await home.fillRequirement('Explain photosynthesis');
     await home.submit();
     await page.waitForURL(/\/generation-preview/);
     const preview = new GenerationPreviewPage(page);

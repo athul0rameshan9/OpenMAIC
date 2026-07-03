@@ -30,7 +30,7 @@ describe('TextFormatBar — currentFontLabel', () => {
 
   it("returns the registry entry's label for a matched font", () => {
     expect(currentFontLabel('Roboto', t)).toBe('Roboto');
-    expect(currentFontLabel('Noto Sans SC', t)).toBe('思源黑体');
+    expect(currentFontLabel('Noto Sans SC', t)).toBe('Noto Sans SC');
   });
 
   it('returns the raw family name for an unmatched legacy font', () => {

@@ -4,7 +4,7 @@ import { buildPrompt, PROMPT_IDS } from '@/lib/prompts';
 
 function buildTaskEnginePrompt() {
   const prompt = buildPrompt(PROMPT_IDS.TASK_ENGINE_OUTLINES, {
-    requirement: 'NEV-A12 新能源车动力电池包更换前安全确认',
+    requirement: 'NEV-A12 EV battery pack pre-replacement safety confirmation',
     pdfContent: 'None',
     availableImages: 'No images available',
     researchContext: 'None',

@@ -91,7 +91,7 @@ async function gradeShortAnswerQuestion(
       aiComment:
         language === 'zh-CN'
           ? '评分服务暂时不可用，已给予基础分。'
-          : 'Grading service unavailable. Base score given.',
+          : 'Grading service temporarily unavailable; base score given.',
     };
   }
 }

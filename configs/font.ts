@@ -22,10 +22,10 @@ export interface FontEntry {
 export const FONTS: readonly FontEntry[] = [
   { labelKey: 'edit.text.fontDefault', label: 'Default', value: '' },
   // Chinese
-  { label: '思源黑体', value: 'Noto Sans SC' },
-  { label: '思源宋体', value: 'Noto Serif SC' },
-  { label: '霞鹜文楷', value: 'LXGW WenKai' },
-  { label: '站酷快乐体', value: 'ZCOOL KuaiLe' },
+  { label: 'Noto Sans SC', value: 'Noto Sans SC' },
+  { label: 'Noto Serif SC', value: 'Noto Serif SC' },
+  { label: 'LXGW WenKai', value: 'LXGW WenKai' },
+  { label: 'ZCOOL Happy', value: 'ZCOOL KuaiLe' },
   // Latin
   { label: 'Inter', value: 'Inter' },
   { label: 'Roboto', value: 'Roboto' },

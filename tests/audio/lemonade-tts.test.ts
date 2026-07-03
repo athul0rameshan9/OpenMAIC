@@ -76,7 +76,7 @@ describe('Lemonade TTS', () => {
       headers: { get: () => 'audio/wav' },
     });
 
-    await generateTTS({ providerId: 'lemonade-tts', voice: 'af_heart' }, '给我讲讲 Python');
+    await generateTTS({ providerId: 'lemonade-tts', voice: 'af_heart' }, 'Tell me about Python');
 
     const body = JSON.parse(mockFetch.mock.calls[0][1].body);
     expect(body.voice).toBe('af_heart');

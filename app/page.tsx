@@ -799,7 +799,7 @@ function HomePage() {
                         gap: '5px',
                       }}
                     >
-                      职教任务
+                      Vocational Task
                     </button>
                   )}
                 </div>

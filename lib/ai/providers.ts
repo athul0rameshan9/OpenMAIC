@@ -799,7 +799,7 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
 
   siliconflow: {
     id: 'siliconflow',
-    name: '硅基流动',
+    name: 'SiliconFlow',
     type: 'openai',
     defaultBaseUrl: 'https://api.siliconflow.cn/v1',
     requiresApiKey: true,
@@ -863,7 +863,7 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
 
   doubao: {
     id: 'doubao',
-    name: '豆包',
+    name: 'Doubao',
     type: 'openai',
     defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
     requiresApiKey: true,

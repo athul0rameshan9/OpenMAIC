@@ -7,9 +7,9 @@ import {
 
 describe('web search provider constants', () => {
   it('uses translated provider names when available', () => {
-    const t = (key: string) => (key === 'settings.providerNames.bocha' ? '博查' : key);
+    const t = (key: string) => (key === 'settings.providerNames.bocha' ? 'Bocha' : key);
 
-    expect(getWebSearchProviderDisplayName('bocha', t)).toBe('博查');
+    expect(getWebSearchProviderDisplayName('bocha', t)).toBe('Bocha');
   });
 
   it('falls back to provider metadata name when no translation exists', () => {

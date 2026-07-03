@@ -36,7 +36,7 @@ async function seedDatabase(page: import('@playwright/test').Page) {
 
             tx.objectStore('stages').put({
               id: stageId,
-              name: '光合作用',
+              name: 'Photosynthesis',
               description: '',
               language: 'zh-CN',
               style: 'professional',
@@ -71,9 +71,9 @@ async function seedDatabase(page: import('@playwright/test').Page) {
                 id: 'scene-0',
                 stageId,
                 type: 'slide',
-                title: '基本概念',
+                title: 'Basic Concepts',
                 order: 0,
-                content: makeSlideContent('基本概念', '0'),
+                content: makeSlideContent('Basic Concepts', '0'),
                 createdAt: now,
                 updatedAt: now,
               },
@@ -81,9 +81,9 @@ async function seedDatabase(page: import('@playwright/test').Page) {
                 id: 'scene-1',
                 stageId,
                 type: 'slide',
-                title: '光反应',
+                title: 'Light Reaction',
                 order: 1,
-                content: makeSlideContent('光反应', '1'),
+                content: makeSlideContent('Light Reaction', '1'),
                 createdAt: now,
                 updatedAt: now,
               },
@@ -91,9 +91,9 @@ async function seedDatabase(page: import('@playwright/test').Page) {
                 id: 'scene-2',
                 stageId,
                 type: 'slide',
-                title: '暗反应',
+                title: 'Dark Reaction',
                 order: 2,
-                content: makeSlideContent('暗反应', '2'),
+                content: makeSlideContent('Dark Reaction', '2'),
                 createdAt: now,
                 updatedAt: now,
               },
@@ -153,13 +153,13 @@ test.describe('Classroom Interaction', () => {
     await expect(classroom.sidebarScenes).toHaveCount(3, { timeout: 10_000 });
 
     // First scene title visible
-    await expect(classroom.getSceneTitle(0)).toContainText('基本概念');
+    await expect(classroom.getSceneTitle(0)).toContainText('Basic Concepts');
 
     // Click second scene
     await classroom.clickScene(1);
 
     // Verify second scene is now active — heading in the top bar shows the current scene name
-    await expect(page.getByRole('heading', { name: '光反应' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Light Reaction' })).toBeVisible();
   });
 
   test('keeps body spacing stable for header menus and settings modal', async ({ page }) => {
