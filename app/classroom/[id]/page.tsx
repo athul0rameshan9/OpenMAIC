@@ -31,6 +31,17 @@ export default function ClassroomDetailPage() {
   const { generateRemaining, retrySingleOutline, stop } = useSceneGenerator({
     onComplete: () => {
       log.info('[Classroom] All scenes generated');
+      // Persist completed classroom to Supabase
+      const { stage, scenes } = useStageStore.getState();
+      if (stage) {
+        fetch('/api/classroom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stage, scenes }),
+        }).catch((err) => {
+          log.warn('[Classroom] Server persist failed:', err);
+        });
+      }
     },
   });
 
@@ -200,7 +211,20 @@ export default function ClassroomDetailPage() {
       // ran. Record completion now so a later edit/delete is not treated as
       // an interrupted generation. No-op if already complete or not all
       // outlines have scenes.
+      const wasAlreadyComplete = useStageStore.getState().generationComplete;
       useStageStore.getState().markGenerationCompleteIfDone();
+
+      // Persist to Supabase on first completion (skip on page refresh)
+      if (!wasAlreadyComplete) {
+        const { scenes: allScenes } = useStageStore.getState();
+        fetch('/api/classroom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stage, scenes: allScenes }),
+        }).catch((err) => {
+          log.warn('[Classroom] Server persist failed:', err);
+        });
+      }
       // Resume media only for outlines that still have a scene. On a finished
       // deck the user may have deleted a slide, leaving an orphaned outline;
       // generating its media would waste API calls on a slide that is gone.

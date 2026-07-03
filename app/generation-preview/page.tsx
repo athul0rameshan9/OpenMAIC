@@ -1009,6 +1009,19 @@ function GenerationPreviewContent() {
 
       sessionStorage.removeItem('generationSession');
       await store.saveToStorage();
+
+      // Persist to Supabase so the classroom is accessible cross-browser
+      try {
+        const { stage: stageData, scenes } = store.getState();
+        await fetch('/api/classroom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stage: stageData, scenes }),
+        });
+      } catch {
+        // Best-effort — classroom still works locally via IndexedDB
+      }
+
       router.push(`/classroom/${stage.id}`);
     } catch (err) {
       setIsOutlineStreaming(false);
