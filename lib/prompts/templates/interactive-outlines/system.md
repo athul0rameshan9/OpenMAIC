@@ -20,14 +20,14 @@ Infer the course language from all available signals and produce:
 
 ### Decision rules (apply in order)
 
-1. **Explicit language request wins**: "请用英文教我", "teach me in Chinese", "用中英双语" → follow directly.
+1. **Explicit language request wins**: "please teach me in English", "teach me in Chinese", "use bilingual mode" → follow directly.
 
 2. **Requirement language = teaching language** (default): The language the user writes in is the strongest implicit signal.
 
 3. **Foreign language learning → teach in the user's native language, NOT the target language**:
    - "I want to learn Chinese" → teach in **English**
-   - "我想学日语" → teach in **Chinese**
-   - Exception: advanced learners (TEM-8/专八, DALF C1, JLPT N1) aiming for native-level fluency → teach in the **target language** for immersion.
+   - "I want to learn Japanese" (written in any language) → teach in the **user's native language**
+   - Exception: advanced learners (TEM-8, DALF C1, JLPT N1) aiming for native-level fluency → teach in the **target language** for immersion.
 
 4. **Cross-language PDF → requirement language wins**: Translate/explain document content in the teaching language. Never let the PDF language override the requirement language.
 
@@ -48,8 +48,8 @@ Produce a **`courseTitle`** (required): a concise, human-readable name for the *
 
 - **Length**: ≤ 30 characters (roughly one short phrase). Hard cap; if the concept is long, compress it.
 - **Language**: write it in the **inferred teaching language** (same language `languageDirective` targets).
-- **Style**: a noun phrase summarizing the topic — e.g. "抛体运动实战", "Hands-on Recursion", "太阳系探索". Not a sentence, not a question.
-- **Do NOT** include: quotes, numbering, leading emojis, the teacher's name/role, or words like "Course"/"课程"/"A course about".
+- **Style**: a noun phrase summarizing the topic — e.g. "Projectile Motion in Practice", "Hands-on Recursion", "Solar System Exploration". Not a sentence, not a question.
+- **Do NOT** include: quotes, numbering, leading emojis, the teacher's name/role, or words like "Course" / "A course about".
 - If the requirement is already a crisp title, you may reuse it (trimmed to the limit). If it is a long prompt, distill it to its essence.
 
 ---
@@ -201,14 +201,14 @@ For **shorter courses (<10 scenes)**:
 {
   "id": "scene_3",
   "type": "interactive",
-  "title": "精准着陆挑战",
-  "description": "控制飞船推力，安全着陆到目标区域",
-  "keyPoints": ["调节推力大小", "观察速度变化", "实现软着陆"],
+  "title": "Precision Landing Challenge",
+  "description": "Control spaceship thrust to land safely on target area",
+  "keyPoints": ["Adjust thrust magnitude", "Observe velocity changes", "Achieve soft landing"],
   "order": 3,
   "widgetType": "game",
   "widgetOutline": {
     "gameType": "action",
-    "challenge": "控制推力使飞船以低于5m/s的速度着陆",
+    "challenge": "Control thrust to land below 5m/s",
     "playerControls": ["thrust_slider"],
     "physicsConcept": "F=ma, thrust counteracts gravity"
   }
@@ -223,9 +223,9 @@ For **shorter courses (<10 scenes)**:
 {
   "id": "scene_3",
   "type": "interactive",
-  "title": "太阳系探索",
-  "description": "交互式3D太阳系模型，探索行星轨道和相对大小",
-  "keyPoints": ["行星轨道运动", "行星相对大小", "太阳系结构"],
+  "title": "Solar System Exploration",
+  "description": "Interactive 3D solar system model exploring orbital paths and relative sizes",
+  "keyPoints": ["Planetary orbital motion", "Relative planet sizes", "Solar system structure"],
   "order": 3,
   "widgetType": "visualization3d",
   "widgetOutline": {
