@@ -42,7 +42,7 @@ export function ScreenElement({ elementInfo, elementIndex, animate }: ScreenElem
 
   const theme = useSceneSelector<SceneContent, { fontColor: string; fontName: string }>(
     (content) => {
-      if (content.type === 'slide') {
+      if (content.type === 'slide' && content.canvas.theme) {
         return content.canvas.theme;
       }
       return {

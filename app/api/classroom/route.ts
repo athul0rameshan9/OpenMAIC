@@ -6,6 +6,8 @@ import {
   isValidClassroomId,
   persistClassroom,
   readClassroom,
+  listClassrooms,
+  deleteClassroom,
 } from '@/lib/server/classroom-storage';
 import { createLogger } from '@/lib/logger';
 
@@ -52,12 +54,12 @@ export async function GET(request: NextRequest) {
   try {
     const id = request.nextUrl.searchParams.get('id');
 
+    // If no id provided, list all classrooms
     if (!id) {
-      return apiError(
-        API_ERROR_CODES.MISSING_REQUIRED_FIELD,
-        400,
-        'Missing required parameter: id',
-      );
+      const limitParam = request.nextUrl.searchParams.get('limit');
+      const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10) || 50, 1), 200) : 50;
+      const classrooms = await listClassrooms(limit);
+      return apiSuccess({ classrooms });
     }
 
     if (!isValidClassroomId(id)) {
@@ -79,6 +81,35 @@ export async function GET(request: NextRequest) {
       API_ERROR_CODES.INTERNAL_ERROR,
       500,
       'Failed to retrieve classroom',
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const id = request.nextUrl.searchParams.get('id');
+
+    if (!id) {
+      return apiError(
+        API_ERROR_CODES.MISSING_REQUIRED_FIELD,
+        400,
+        'Missing required parameter: id',
+      );
+    }
+
+    if (!isValidClassroomId(id)) {
+      return apiError(API_ERROR_CODES.INVALID_REQUEST, 400, 'Invalid classroom id');
+    }
+
+    await deleteClassroom(id);
+    return apiSuccess({ deleted: id });
+  } catch (error) {
+    log.error(`Classroom deletion failed [id=${request.nextUrl.searchParams.get('id') ?? 'unknown'}]:`, error);
+    return apiError(
+      API_ERROR_CODES.INTERNAL_ERROR,
+      500,
+      'Failed to delete classroom',
       error instanceof Error ? error.message : String(error),
     );
   }

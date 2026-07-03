@@ -219,6 +219,30 @@ function HomePage() {
   const loadClassrooms = async () => {
     try {
       const list = await listStages();
+      // Also fetch server-stored classrooms (Supabase) and merge
+      // so classrooms created via API appear in the homepage list.
+      try {
+        const res = await fetch('/api/classroom');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.classrooms)) {
+            const localIds = new Set(list.map((c) => c.id));
+            const serverOnly = json.classrooms
+              .filter((c: { id: string }) => !localIds.has(c.id))
+              .map((c: { id: string; stage: { name?: string; description?: string }; scenes?: unknown[]; createdAt: string }) => ({
+                id: c.id,
+                name: c.stage?.name || c.id,
+                description: c.stage?.description,
+                sceneCount: Array.isArray(c.scenes) ? c.scenes.length : 0,
+                createdAt: c.createdAt,
+                updatedAt: c.createdAt,
+              }));
+            list.push(...serverOnly);
+          }
+        }
+      } catch {
+        // Server fetch is best-effort; IndexedDB list still shows
+      }
       setClassrooms(list);
       // Load first slide thumbnails
       if (list.length > 0) {
