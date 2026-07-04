@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     // providerId is required from the client — no server-side store to fall back to
-    const effectiveProviderId = providerId || ('openai-whisper' as ASRProviderId);
+    const effectiveProviderId = providerId || ('azure-asr' as ASRProviderId);
     resolvedProviderId = effectiveProviderId;
     resolvedModelId = modelId ?? undefined;
 

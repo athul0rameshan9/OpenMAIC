@@ -137,15 +137,7 @@ function getTTSProviderName(providerId: TTSProviderId, t: (key: string) => strin
     return cfg?.customName || providerId;
   }
   const names: Record<string, string> = {
-    'openai-tts': t('settings.providerOpenAITTS'),
     'azure-tts': t('settings.providerAzureTTS'),
-    'glm-tts': t('settings.providerGLMTTS'),
-    'qwen-tts': t('settings.providerQwenTTS'),
-    'voxcpm-tts': t('settings.providerVoxCPMTTS'),
-    'doubao-tts': t('settings.providerDoubaoTTS'),
-    'elevenlabs-tts': t('settings.providerElevenLabsTTS'),
-    'minimax-tts': t('settings.providerMiniMaxTTS'),
-    'lemonade-tts': t('settings.providerLemonadeTTS'),
     'browser-native-tts': t('settings.providerBrowserNativeTTS'),
   };
   return names[providerId] || providerId;
@@ -157,11 +149,8 @@ function getASRProviderName(providerId: ASRProviderId, t: (key: string) => strin
     return cfg?.customName || providerId;
   }
   const names: Record<string, string> = {
-    'openai-whisper': t('settings.providerOpenAIWhisper'),
     'browser-native': t('settings.providerBrowserNative'),
-    'qwen-asr': t('settings.providerQwenASR'),
     'azure-asr': t('settings.providerAzureASR'),
-    'lemonade-asr': t('settings.providerLemonadeASR'),
   };
   return names[providerId] || providerId;
 }

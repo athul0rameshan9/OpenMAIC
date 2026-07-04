@@ -9,9 +9,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('TTS');
 
 /** Provider-specific max text length limits. */
-export const TTS_MAX_TEXT_LENGTH: Partial<Record<TTSProviderId, number>> = {
-  'glm-tts': 1024,
-};
+export const TTS_MAX_TEXT_LENGTH: Partial<Record<TTSProviderId, number>> = {};
 
 /**
  * Split long text into chunks that respect sentence boundaries.

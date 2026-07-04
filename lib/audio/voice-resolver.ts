@@ -7,12 +7,6 @@ import {
   isTTSProviderEnabled,
   type TTSEnablementConfig,
 } from '@/lib/audio/provider-enablement';
-import {
-  VOXCPM_TTS_PROVIDER_ID,
-  getVoxCPMProfileVoiceId,
-  normalizeVoxCPMBackend,
-  voxCPMBackendSupportsReferenceAudio,
-} from '@/lib/audio/voxcpm';
 
 export interface ResolvedVoice {
   providerId: TTSProviderId;
@@ -145,7 +139,6 @@ export function getEnabledProvidersWithVoices(
       customName?: string;
     }
   >,
-  voxcpmProfiles: Array<{ id: string; name: string; kind?: string }> = [],
 ): ProviderWithVoices[] {
   const result: ProviderWithVoices[] = [];
 
@@ -158,29 +151,12 @@ export function getEnabledProvidersWithVoices(
     const providerConfig = ttsProvidersConfig[providerId];
     if (!isTTSProviderEnabled(providerId, providerConfig)) continue;
 
-    const visibleVoxCPMProfiles =
-      providerId === VOXCPM_TTS_PROVIDER_ID
-        ? voxcpmProfiles.filter((profile) => {
-            const backend = normalizeVoxCPMBackend(providerConfig?.providerOptions?.backend);
-            return profile.kind !== 'clone' || voxCPMBackendSupportsReferenceAudio(backend);
-          })
-        : [];
-
     {
-      const allVoices = [
-        ...config.voices.map((v) => ({
-          id: v.id,
-          name: v.name,
-          language: v.language,
-        })),
-        ...(providerId === VOXCPM_TTS_PROVIDER_ID
-          ? visibleVoxCPMProfiles.map((profile) => ({
-              id: getVoxCPMProfileVoiceId(profile.id),
-              name: profile.name,
-              language: 'auto',
-            }))
-          : []),
-      ];
+      const allVoices = config.voices.map((v) => ({
+        id: v.id,
+        name: v.name,
+        language: v.language,
+      }));
 
       // Build model groups
       const modelGroups: ModelVoiceGroup[] = [];
@@ -189,15 +165,6 @@ export function getEnabledProvidersWithVoices(
           const compatibleVoices = config.voices
             .filter((v) => !v.compatibleModels || v.compatibleModels.includes(model.id))
             .map((v) => ({ id: v.id, name: v.name, language: v.language }));
-          if (providerId === VOXCPM_TTS_PROVIDER_ID) {
-            compatibleVoices.push(
-              ...visibleVoxCPMProfiles.map((profile) => ({
-                id: getVoxCPMProfileVoiceId(profile.id),
-                name: profile.name,
-                language: 'auto',
-              })),
-            );
-          }
           modelGroups.push({
             modelId: model.id,
             modelName: model.name,
@@ -268,10 +235,9 @@ export function getSelectableProvidersWithVoices(
       customName?: string;
     }
   >,
-  voxcpmProfiles: Array<{ id: string; name: string; kind?: string }> = [],
   browserVoices: BrowserVoiceLike[] = [],
 ): ProviderWithVoices[] {
-  const providers = getEnabledProvidersWithVoices(ttsProvidersConfig, voxcpmProfiles);
+  const providers = getEnabledProvidersWithVoices(ttsProvidersConfig);
   if (
     isTTSProviderEnabled(
       BROWSER_NATIVE_TTS_PROVIDER_ID,

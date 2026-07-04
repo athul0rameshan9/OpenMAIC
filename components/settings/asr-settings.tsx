@@ -280,12 +280,8 @@ export function ASRSettings({ selectedProviderId }: ASRSettingsProps) {
               endpointPath = '/audio/transcriptions';
             } else {
               switch (selectedProviderId) {
-                case 'openai-whisper':
-                case 'lemonade-asr':
+                case 'azure-asr':
                   endpointPath = '/audio/transcriptions';
-                  break;
-                case 'qwen-asr':
-                  endpointPath = '/services/aigc/multimodal-generation/generation';
                   break;
               }
             }

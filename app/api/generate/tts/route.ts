@@ -20,7 +20,6 @@ import type { TTSProviderId } from '@/lib/audio/types';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
-import { VOXCPM_AUTO_VOICE_ID, VOXCPM_TTS_PROVIDER_ID } from '@/lib/audio/voxcpm';
 
 const log = createLogger('TTS API');
 
@@ -67,25 +66,6 @@ export async function POST(req: NextRequest) {
       return apiError('PROVIDER_DISABLED', 403, 'This TTS provider is disabled by the server');
     }
 
-    const voxcpmVoicePrompt =
-      typeof ttsProviderOptions?.voicePrompt === 'string' ? ttsProviderOptions.voicePrompt : '';
-    const voxcpmRegisteredVoiceId =
-      typeof ttsProviderOptions?.registeredVoiceId === 'string'
-        ? ttsProviderOptions.registeredVoiceId
-        : '';
-    if (
-      ttsProviderId === VOXCPM_TTS_PROVIDER_ID &&
-      ttsVoice === VOXCPM_AUTO_VOICE_ID &&
-      !voxcpmVoicePrompt.trim() &&
-      !voxcpmRegisteredVoiceId.trim()
-    ) {
-      return apiError(
-        'VOXCPM_AUTO_VOICE_REQUIRES_CONTEXT',
-        400,
-        'VoxCPM Auto Voice requires agent context',
-      );
-    }
-
     // Managed providers are admin-owned: ignore any client-sent key/baseUrl.
     const managed = isServerConfiguredProvider('tts', ttsProviderId);
     const clientBaseUrl = managed ? undefined : ttsBaseUrl || undefined;
@@ -112,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     log.info(
       `Generating TTS: provider=${ttsProviderId}, model=${config.modelId || 'default'}, voice=${ttsVoice}, ` +
-        `registeredVoiceId=${voxcpmRegisteredVoiceId || 'none'}, audioId=${audioId}, textLen=${text.length}`,
+        `audioId=${audioId}, textLen=${text.length}`,
     );
 
     // Generate audio

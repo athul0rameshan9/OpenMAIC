@@ -77,8 +77,5 @@ export async function normalizeASRUploadAudio(
   providerId: string,
   audioBlob: Blob,
 ): Promise<{ blob: Blob; fileName: string }> {
-  if (providerId !== 'lemonade-asr') {
-    return { blob: audioBlob, fileName: 'recording.webm' };
-  }
-  return { blob: await audioBlobToWav(audioBlob), fileName: 'recording.wav' };
+  return { blob: audioBlob, fileName: 'recording.webm' };
 }

@@ -24,15 +24,8 @@ const ENV_PREFIXES_TO_CLEAR = [
   'MIMO',
   'HY3',
   'OLLAMA',
-  'TTS_OPENAI',
   'TTS_AZURE',
-  'TTS_GLM',
-  'TTS_QWEN',
-  'TTS_DOUBAO',
-  'TTS_ELEVENLABS',
-  'TTS_MINIMAX',
-  'ASR_OPENAI',
-  'ASR_QWEN',
+  'ASR_AZURE',
   'PDF_UNPDF',
   'PDF_MINERU',
   'PDF_MINERU_CLOUD',
@@ -443,16 +436,16 @@ pdf:
     });
 
     it('marks an env-configured TTS provider as managed (no disabled flag)', async () => {
-      vi.stubEnv('TTS_OPENAI_API_KEY', 'sk-tts');
+      vi.stubEnv('TTS_AZURE_API_KEY', 'sk-tts');
       const { getServerTTSProviders } = await import('@/lib/server/provider-config');
-      expect(getServerTTSProviders()['openai-tts']).toEqual({});
+      expect(getServerTTSProviders()['azure-tts']).toEqual({});
     });
 
     it('force-disables a provider via TTS_<P>_ENABLED=false even when it has a key', async () => {
-      vi.stubEnv('TTS_OPENAI_API_KEY', 'sk-tts');
-      vi.stubEnv('TTS_OPENAI_ENABLED', 'false');
+      vi.stubEnv('TTS_AZURE_API_KEY', 'sk-tts');
+      vi.stubEnv('TTS_AZURE_ENABLED', 'false');
       const { getServerTTSProviders } = await import('@/lib/server/provider-config');
-      expect(getServerTTSProviders()['openai-tts']).toEqual({ disabled: true });
+      expect(getServerTTSProviders()['azure-tts']).toEqual({ disabled: true });
     });
 
     it('force-disables browser-native via env (it is client-only, has no key)', async () => {
@@ -462,32 +455,32 @@ pdf:
     });
 
     it('force-disables a provider via YAML tts.<id>.enabled: false', async () => {
-      yamlOverride = 'tts:\n  voxcpm-tts:\n    enabled: false\n';
+      yamlOverride = 'tts:\n  azure-tts:\n    enabled: false\n';
       const { getServerTTSProviders } = await import('@/lib/server/provider-config');
-      expect(getServerTTSProviders()['voxcpm-tts']).toEqual({ disabled: true });
+      expect(getServerTTSProviders()['azure-tts']).toEqual({ disabled: true });
     });
 
     it('env ENABLED=true overrides a YAML disable', async () => {
-      yamlOverride = 'tts:\n  openai-tts:\n    enabled: false\n    apiKey: sk-yaml\n';
-      vi.stubEnv('TTS_OPENAI_ENABLED', 'true');
+      yamlOverride = 'tts:\n  azure-tts:\n    enabled: false\n    apiKey: sk-yaml\n';
+      vi.stubEnv('TTS_AZURE_ENABLED', 'true');
       const { getServerTTSProviders } = await import('@/lib/server/provider-config');
       // Re-enabled by env, and configured via YAML key ⇒ managed, not disabled.
-      expect(getServerTTSProviders()['openai-tts']).toEqual({});
+      expect(getServerTTSProviders()['azure-tts']).toEqual({});
     });
 
     it('an empty TTS_<P>_ENABLED does NOT override a YAML disable', async () => {
-      yamlOverride = 'tts:\n  openai-tts:\n    enabled: false\n    apiKey: sk-yaml\n';
-      vi.stubEnv('TTS_OPENAI_ENABLED', '');
+      yamlOverride = 'tts:\n  azure-tts:\n    enabled: false\n    apiKey: sk-yaml\n';
+      vi.stubEnv('TTS_AZURE_ENABLED', '');
       const { getServerTTSProviders } = await import('@/lib/server/provider-config');
-      expect(getServerTTSProviders()['openai-tts']).toEqual({ disabled: true });
+      expect(getServerTTSProviders()['azure-tts']).toEqual({ disabled: true });
     });
 
     it('isServerTTSProviderDisabled reflects the force-disable set', async () => {
-      vi.stubEnv('TTS_OPENAI_API_KEY', 'sk-tts');
-      vi.stubEnv('TTS_OPENAI_ENABLED', 'false');
+      vi.stubEnv('TTS_AZURE_API_KEY', 'sk-tts');
+      vi.stubEnv('TTS_AZURE_ENABLED', 'false');
       const { isServerTTSProviderDisabled } = await import('@/lib/server/provider-config');
-      expect(isServerTTSProviderDisabled('openai-tts')).toBe(true);
-      expect(isServerTTSProviderDisabled('qwen-tts')).toBe(false);
+      expect(isServerTTSProviderDisabled('azure-tts')).toBe(true);
+      expect(isServerTTSProviderDisabled('browser-native-tts')).toBe(false);
     });
   });
 });

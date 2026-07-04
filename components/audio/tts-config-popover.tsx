@@ -18,27 +18,14 @@ import { useI18n } from '@/lib/hooks/use-i18n';
 import { useSettingsStore } from '@/lib/store/settings';
 import { getTTSVoices } from '@/lib/audio/constants';
 import { useTTSPreview } from '@/lib/audio/use-tts-preview';
-import {
-  getVoxCPMProviderOptions,
-  getVoxCPMVoiceOptions,
-  useVoxCPMVoiceProfiles,
-} from '@/lib/audio/voxcpm-voices';
-import {
-  VOXCPM_AUTO_VOICE_ID,
-  normalizeVoxCPMBackend,
-  voxCPMBackendSupportsReferenceAudio,
-} from '@/lib/audio/voxcpm';
 
 /** Extract the English name from voice name format "ChineseName (English)" */
 function getVoiceDisplayName(
-  id: string,
+  _id: string,
   name: string,
   lang: string,
-  t: (key: string) => string,
+  _t: (key: string) => string,
 ): string {
-  if (id === VOXCPM_AUTO_VOICE_ID) {
-    return t('settings.voxcpmAutoVoice');
-  }
   if (lang === 'en-US') {
     const match = name.match(/\(([^)]+)\)/);
     return match ? match[1] : name;
@@ -58,17 +45,8 @@ export function TtsConfigPopover() {
   const ttsSpeed = useSettingsStore((s) => s.ttsSpeed);
   const ttsProvidersConfig = useSettingsStore((s) => s.ttsProvidersConfig);
   const setTTSVoice = useSettingsStore((s) => s.setTTSVoice);
-  const { profiles: voxcpmProfiles } = useVoxCPMVoiceProfiles();
-  const voxcpmBackend = normalizeVoxCPMBackend(
-    ttsProvidersConfig['voxcpm-tts']?.providerOptions?.backend,
-  );
 
-  const voices =
-    ttsProviderId === 'voxcpm-tts'
-      ? getVoxCPMVoiceOptions(voxcpmProfiles, {
-          supportsClone: voxCPMBackendSupportsReferenceAudio(voxcpmBackend),
-        })
-      : getTTSVoices(ttsProviderId);
+  const voices = getTTSVoices(ttsProviderId);
   const localizedVoices = useMemo(
     () =>
       voices.map((v) => ({
@@ -80,26 +58,15 @@ export function TtsConfigPopover() {
 
   const pillCls =
     'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer select-none whitespace-nowrap border';
-  const canPreview = ttsProviderId !== 'voxcpm-tts' || ttsVoice !== VOXCPM_AUTO_VOICE_ID;
+  const canPreview = true;
 
   const handlePreview = useCallback(async () => {
     if (previewing) {
       stopPreview();
       return;
     }
-    if (!canPreview) {
-      toast.info(t('settings.voxcpmAutoVoiceNoPreview'));
-      return;
-    }
     try {
       const providerConfig = ttsProvidersConfig[ttsProviderId];
-      const providerOptions =
-        ttsProviderId === 'voxcpm-tts'
-          ? {
-              ...(providerConfig?.providerOptions || {}),
-              ...(await getVoxCPMProviderOptions(ttsVoice, { role: 'teacher', locale })),
-            }
-          : undefined;
       await startPreview({
         text: t('settings.ttsTestTextDefault'),
         providerId: ttsProviderId,
@@ -107,10 +74,8 @@ export function TtsConfigPopover() {
         voice: ttsVoice,
         speed: ttsSpeed,
         apiKey: providerConfig?.apiKey,
-        // Managed providers resolve their base URL server-side; only send the
-        // client's own base URL (custom providers).
         baseUrl: providerConfig?.baseUrl || providerConfig?.customDefaultBaseUrl,
-        providerOptions,
+        providerOptions: undefined,
       });
     } catch (error) {
       const message =
@@ -119,11 +84,9 @@ export function TtsConfigPopover() {
     }
   }, [
     previewing,
-    canPreview,
     startPreview,
     stopPreview,
     t,
-    locale,
     ttsProviderId,
     ttsProvidersConfig,
     ttsSpeed,

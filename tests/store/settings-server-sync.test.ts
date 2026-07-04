@@ -58,22 +58,13 @@ vi.mock('@/lib/ai/providers', () => ({
 
 vi.mock('@/lib/audio/constants', () => ({
   TTS_PROVIDERS: {
-    'openai-tts': {
-      id: 'openai-tts',
-      name: 'OpenAI TTS',
-      requiresApiKey: true,
-      defaultModelId: 'gpt-4o-mini-tts',
-      models: [{ id: 'gpt-4o-mini-tts', name: 'GPT-4o Mini TTS' }],
-      voices: [{ id: 'alloy', name: 'Alloy', language: 'en', gender: 'neutral' }],
-      supportedFormats: ['mp3'],
-    },
     'azure-tts': {
       id: 'azure-tts',
       name: 'Azure TTS',
       requiresApiKey: true,
       defaultModelId: '',
       models: [],
-      voices: [{ id: 'zh-CN-XiaoxiaoNeural', name: 'Xiaoxiao', language: 'zh-CN' }],
+      voices: [{ id: 'en-US-JennyNeural', name: 'Jenny', language: 'en-US' }],
       supportedFormats: ['mp3'],
     },
     'browser-native-tts': {
@@ -88,13 +79,13 @@ vi.mock('@/lib/audio/constants', () => ({
     },
   },
   ASR_PROVIDERS: {
-    'openai-whisper': {
-      id: 'openai-whisper',
-      name: 'OpenAI Whisper',
+    'azure-asr': {
+      id: 'azure-asr',
+      name: 'Azure ASR',
       requiresApiKey: true,
-      defaultModelId: 'gpt-4o-mini-transcribe',
-      models: [{ id: 'gpt-4o-mini-transcribe', name: 'GPT-4o Mini Transcribe' }],
-      supportedLanguages: ['auto', 'zh'],
+      defaultModelId: '',
+      models: [],
+      supportedLanguages: ['auto', 'en'],
       supportedFormats: ['webm'],
     },
     'browser-native': {
@@ -103,12 +94,12 @@ vi.mock('@/lib/audio/constants', () => ({
       requiresApiKey: false,
       defaultModelId: '',
       models: [],
-      supportedLanguages: ['zh'],
+      supportedLanguages: ['en'],
       supportedFormats: ['browser'],
     },
   },
   DEFAULT_TTS_VOICES: {
-    'openai-tts': 'alloy',
+    'azure-tts': 'en-US-JennyNeural',
     'browser-native-tts': 'default',
   },
 }));
@@ -628,10 +619,10 @@ describe('fetchServerProviders — TTS stale selection', () => {
   it('falls back to browser-native-tts when selected TTS provider loses server config', async () => {
     const store = await getStore();
 
-    mockServerResponse({ tts: { 'openai-tts': {} } });
+    mockServerResponse({ tts: { 'azure-tts': {} } });
     await store.getState().fetchServerProviders();
-    store.getState().setTTSProvider('openai-tts');
-    expect(store.getState().ttsProviderId).toBe('openai-tts');
+    store.getState().setTTSProvider('azure-tts');
+    expect(store.getState().ttsProviderId).toBe('azure-tts');
 
     mockServerResponse({});
     await store.getState().fetchServerProviders();
@@ -639,30 +630,17 @@ describe('fetchServerProviders — TTS stale selection', () => {
     expect(store.getState().ttsProviderId).toBe('browser-native-tts');
   });
 
-  it('falls back to remaining server TTS provider when selected one is removed', async () => {
+  it('keeps TTS provider when it is still server-configured', async () => {
     const store = await getStore();
 
-    mockServerResponse({ tts: { 'openai-tts': {}, 'azure-tts': {} } });
+    mockServerResponse({ tts: { 'azure-tts': {} } });
     await store.getState().fetchServerProviders();
-    store.getState().setTTSProvider('openai-tts');
+    store.getState().setTTSProvider('azure-tts');
 
     mockServerResponse({ tts: { 'azure-tts': {} } });
     await store.getState().fetchServerProviders();
 
     expect(store.getState().ttsProviderId).toBe('azure-tts');
-  });
-
-  it('keeps TTS provider when it is still server-configured', async () => {
-    const store = await getStore();
-
-    mockServerResponse({ tts: { 'openai-tts': {} } });
-    await store.getState().fetchServerProviders();
-    store.getState().setTTSProvider('openai-tts');
-
-    mockServerResponse({ tts: { 'openai-tts': {} } });
-    await store.getState().fetchServerProviders();
-
-    expect(store.getState().ttsProviderId).toBe('openai-tts');
   });
 });
 
@@ -681,10 +659,10 @@ describe('fetchServerProviders — ASR stale selection', () => {
   it('falls back to browser-native when selected ASR provider loses server config', async () => {
     const store = await getStore();
 
-    mockServerResponse({ asr: { 'openai-whisper': {} } });
+    mockServerResponse({ asr: { 'azure-asr': {} } });
     await store.getState().fetchServerProviders();
-    store.getState().setASRProvider('openai-whisper');
-    expect(store.getState().asrProviderId).toBe('openai-whisper');
+    store.getState().setASRProvider('azure-asr');
+    expect(store.getState().asrProviderId).toBe('azure-asr');
 
     mockServerResponse({});
     await store.getState().fetchServerProviders();
@@ -695,14 +673,14 @@ describe('fetchServerProviders — ASR stale selection', () => {
   it('keeps ASR provider when it is still server-configured', async () => {
     const store = await getStore();
 
-    mockServerResponse({ asr: { 'openai-whisper': {} } });
+    mockServerResponse({ asr: { 'azure-asr': {} } });
     await store.getState().fetchServerProviders();
-    store.getState().setASRProvider('openai-whisper');
+    store.getState().setASRProvider('azure-asr');
 
-    mockServerResponse({ asr: { 'openai-whisper': {} } });
+    mockServerResponse({ asr: { 'azure-asr': {} } });
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().asrProviderId).toBe('openai-whisper');
+    expect(store.getState().asrProviderId).toBe('azure-asr');
   });
 });
 
@@ -1530,7 +1508,7 @@ describe('TTS provider enablement (#665)', () => {
   });
 
   it('first server-sync auto-enables TTS when a server provider exists', async () => {
-    mockServerResponse({ tts: { 'openai-tts': {} } });
+    mockServerResponse({ tts: { 'azure-tts': {} } });
     const store = await getStore();
     expect(store.getState().ttsEnabled).toBe(false);
     await store.getState().fetchServerProviders();
@@ -1558,7 +1536,6 @@ describe('TTS provider enablement (#665)', () => {
         version: 3,
         state: {
           ttsProvidersConfig: {
-            'openai-tts': { apiKey: '', baseUrl: '', enabled: true },
             // stale default-false on a configured-capable provider — must flip ON
             'azure-tts': { apiKey: '', baseUrl: '', enabled: false },
             // legacy default-true browser-native — must flip OFF
@@ -1575,30 +1552,30 @@ describe('TTS provider enablement (#665)', () => {
   });
 
   it('server force-disable sets serverDisabled and does NOT mark the provider managed', async () => {
-    mockServerResponse({ tts: { 'openai-tts': { disabled: true } } });
+    mockServerResponse({ tts: { 'azure-tts': { disabled: true } } });
     const store = await getStore();
     await store.getState().fetchServerProviders();
-    const cfg = store.getState().ttsProvidersConfig['openai-tts'];
+    const cfg = store.getState().ttsProvidersConfig['azure-tts'];
     expect(cfg.serverDisabled).toBe(true);
     expect(cfg.isServerConfigured).toBe(false);
   });
 
   it('a server-managed (not disabled) provider is marked configured, not disabled', async () => {
-    mockServerResponse({ tts: { 'openai-tts': {} } });
+    mockServerResponse({ tts: { 'azure-tts': {} } });
     const store = await getStore();
     await store.getState().fetchServerProviders();
-    const cfg = store.getState().ttsProvidersConfig['openai-tts'];
+    const cfg = store.getState().ttsProvidersConfig['azure-tts'];
     expect(cfg.isServerConfigured).toBe(true);
     expect(cfg.serverDisabled).toBe(false);
   });
 
   it('clears serverDisabled when a later sync no longer reports the provider disabled', async () => {
     const store = await getStore();
-    mockServerResponse({ tts: { 'openai-tts': { disabled: true } } });
+    mockServerResponse({ tts: { 'azure-tts': { disabled: true } } });
     await store.getState().fetchServerProviders();
-    expect(store.getState().ttsProvidersConfig['openai-tts'].serverDisabled).toBe(true);
+    expect(store.getState().ttsProvidersConfig['azure-tts'].serverDisabled).toBe(true);
     mockServerResponse({ tts: {} });
     await store.getState().fetchServerProviders();
-    expect(store.getState().ttsProvidersConfig['openai-tts'].serverDisabled).toBe(false);
+    expect(store.getState().ttsProvidersConfig['azure-tts'].serverDisabled).toBe(false);
   });
 });

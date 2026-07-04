@@ -14,7 +14,6 @@ import type { TTSProviderId, ASRProviderId, BuiltInTTSProviderId } from '@/lib/a
 import type { AgentVoiceOverride } from '@/lib/audio/voice-resolver';
 import { isCustomTTSProvider, isCustomASRProvider } from '@/lib/audio/types';
 import { ASR_PROVIDERS, DEFAULT_TTS_VOICES, TTS_PROVIDERS } from '@/lib/audio/constants';
-import { DEFAULT_VOXCPM_BACKEND, VOXCPM_MODEL_ID, VOXCPM_VLLM_MODEL_ID } from '@/lib/audio/voxcpm';
 import { PDF_PROVIDERS } from '@/lib/pdf/constants';
 import type { PDFProviderId } from '@/lib/pdf/types';
 import type { ImageProviderId, VideoProviderId } from '@/lib/media/types';
@@ -396,36 +395,13 @@ function resolveLLMSelection(
 
 // Initialize default audio config
 const getDefaultAudioConfig = () => ({
-  ttsProviderId: 'browser-native-tts' as TTSProviderId,
-  ttsVoice: 'default',
+  ttsProviderId: 'azure-tts' as TTSProviderId,
+  ttsVoice: 'en-US-JennyNeural',
   ttsSpeed: 1.0,
   asrProviderId: 'browser-native' as ASRProviderId,
-  asrLanguage: 'zh',
+  asrLanguage: 'en',
   ttsProvidersConfig: {
-    // Built-in providers default enabled:true — they only ever surface once
-    // configured (API key or server-managed), so "enabled" is a user opt-OUT,
-    // not the visibility gate. A server-configured provider must not be hidden
-    // by a stale default (#665).
-    'openai-tts': { apiKey: '', baseUrl: '', enabled: true },
     'azure-tts': { apiKey: '', baseUrl: '', enabled: true },
-    'glm-tts': { apiKey: '', baseUrl: '', enabled: true },
-    'qwen-tts': { apiKey: '', baseUrl: '', enabled: true },
-    'voxcpm-tts': {
-      apiKey: '',
-      baseUrl: '',
-      modelId: VOXCPM_VLLM_MODEL_ID,
-      enabled: true,
-      providerOptions: { backend: DEFAULT_VOXCPM_BACKEND },
-    },
-    'doubao-tts': { apiKey: '', baseUrl: '', enabled: true },
-    'elevenlabs-tts': { apiKey: '', baseUrl: '', enabled: true },
-    'minimax-tts': { apiKey: '', baseUrl: '', modelId: 'speech-2.8-hd', enabled: true },
-    'lemonade-tts': {
-      apiKey: '',
-      baseUrl: '',
-      modelId: 'kokoro-v1',
-      enabled: true,
-    },
     // Browser-native is OFF by default — fully opt-in. Native voice quality is
     // poor; it must never be a silent default (#665).
     'browser-native-tts': { apiKey: '', baseUrl: '', enabled: false },
@@ -434,11 +410,8 @@ const getDefaultAudioConfig = () => ({
     { apiKey: string; baseUrl: string; modelId?: string; enabled: boolean }
   >,
   asrProvidersConfig: {
-    'openai-whisper': { apiKey: '', baseUrl: '', enabled: true },
     'browser-native': { apiKey: '', baseUrl: '', enabled: true },
-    'qwen-asr': { apiKey: '', baseUrl: '', enabled: false },
     'azure-asr': { apiKey: '', baseUrl: '', enabled: false },
-    'lemonade-asr': { apiKey: '', baseUrl: '', enabled: false },
   } as Record<ASRProviderId, { apiKey: string; baseUrl: string; enabled: boolean }>,
 });
 
@@ -581,16 +554,6 @@ function ensureBuiltInAudioProviders(state: Partial<SettingsState>): void {
       if (!state.ttsProvidersConfig[providerId]) {
         state.ttsProvidersConfig[providerId] = defaultAudioConfig.ttsProvidersConfig[providerId];
       }
-    }
-    const voxcpmConfig = state.ttsProvidersConfig['voxcpm-tts'];
-    if (voxcpmConfig) {
-      if (!voxcpmConfig.modelId || voxcpmConfig.modelId === VOXCPM_MODEL_ID) {
-        voxcpmConfig.modelId = VOXCPM_VLLM_MODEL_ID;
-      }
-      voxcpmConfig.providerOptions = {
-        backend: DEFAULT_VOXCPM_BACKEND,
-        ...(voxcpmConfig.providerOptions || {}),
-      };
     }
   }
 
@@ -780,7 +743,7 @@ const migrateFromOldStorage = () => {
   }
 
   // Parse other settings
-  let ttsModel = 'openai-tts';
+  let ttsModel = 'azure-tts';
   if (oldTtsModel) ttsModel = oldTtsModel;
 
   let selectedAgentIds = ['default-1', 'default-2', 'default-3'];
@@ -827,7 +790,7 @@ export const useSettingsStore = create<SettingsState>()(
           initialProvidersConfig,
         ),
         providersConfig: initialProvidersConfig,
-        ttsModel: migratedData?.ttsModel || 'openai-tts',
+        ttsModel: migratedData?.ttsModel || 'azure-tts',
         selectedAgentIds: migratedData?.selectedAgentIds || ['default-1', 'default-2', 'default-3'],
         agentMode: 'auto' as const,
         autoAgentCount: 3,
@@ -1718,13 +1681,11 @@ export const useSettingsStore = create<SettingsState>()(
         // Migrate from old ttsModel to new ttsProviderId
         if (state.ttsModel && !state.ttsProviderId) {
           // Map old ttsModel values to new ttsProviderId
-          if (state.ttsModel === 'openai-tts') {
-            state.ttsProviderId = 'openai-tts';
-          } else if (state.ttsModel === 'azure-tts') {
+          if (state.ttsModel === 'azure-tts') {
             state.ttsProviderId = 'azure-tts';
           } else {
-            // Default to OpenAI
-            state.ttsProviderId = 'openai-tts';
+            // Default to Azure
+            state.ttsProviderId = 'azure-tts';
           }
         }
 

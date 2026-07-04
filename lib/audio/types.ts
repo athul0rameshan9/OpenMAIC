@@ -5,32 +5,20 @@
  * with extensible architecture to support multiple providers.
  *
  * Currently Supported TTS Providers:
- * - OpenAI TTS (https://platform.openai.com/docs/guides/text-to-speech)
  * - Azure TTS (https://learn.microsoft.com/en-us/azure/ai-services/speech-service/text-to-speech)
- * - GLM TTS (https://docs.bigmodel.cn/cn/guide/models/sound-and-video/glm-tts)
- * - Qwen TTS (https://bailian.console.aliyun.com/)
- * - Doubao TTS (https://www.volcengine.com/docs/6561/1257543)
  * - Browser Native TTS (Web Speech API, client-side only)
  *
  * Currently Supported ASR Providers:
- * - OpenAI Whisper (https://platform.openai.com/docs/guides/speech-to-text)
- * - Browser Native (Web Speech API, client-side only)
- * - Qwen ASR (DashScope API)
  * - Azure STT (https://learn.microsoft.com/azure/ai-services/speech-service/fast-transcription-create)
+ * - Browser Native (Web Speech API, client-side only)
  *
- * Future Provider Support (extensible):
- * - ElevenLabs TTS/ASR (https://elevenlabs.io/docs)
- * - Fish Audio TTS (https://fish.audio/docs)
- * - Cartesia TTS (https://cartesia.ai/docs)
- * - PlayHT TTS (https://docs.play.ht/)
- * - AssemblyAI ASR (https://www.assemblyai.com/docs)
- * - Deepgram ASR (https://developers.deepgram.com/docs)
+ * Users can add custom providers via the Settings UI.
  *
  * HOW TO ADD A NEW PROVIDER:
  *
  * Step 1: Add provider ID to the union type
- *   - For TTS: Add to TTSProviderId below
- *   - For ASR: Add to ASRProviderId below
+ *   - For TTS: Add to BuiltInTTSProviderId below
+ *   - For ASR: Add to BuiltInASRProviderId below
  *
  * Step 2: Add provider configuration to constants.ts
  *   - Define provider metadata (name, icon, voices, formats, etc.)
@@ -43,30 +31,6 @@
  * Step 4: Add i18n translations
  *   - Add provider name translations in lib/i18n.ts
  *   - Format: `provider{ProviderName}TTS` or `provider{ProviderName}ASR`
- *
- * Step 5 (Optional): Create client-side hook if needed
- *   - For browser-only providers, create hooks like use-browser-tts.ts
- *   - Export from lib/hooks/
- *
- * Example: Adding ElevenLabs TTS
- * ================================
- * 1. Add 'elevenlabs-tts' to TTSProviderId union type
- * 2. In constants.ts:
- *    TTS_PROVIDERS['elevenlabs-tts'] = {
- *      id: 'elevenlabs-tts',
- *      name: 'ElevenLabs',
- *      requiresApiKey: true,
- *      defaultBaseUrl: 'https://api.elevenlabs.io/v1',
- *      icon: '/elevenlabs.svg',
- *      voices: [...],
- *      supportedFormats: ['mp3', 'pcm'],
- *      speedRange: { min: 0.5, max: 2.0, default: 1.0 }
- *    }
- * 3. In tts-providers.ts:
- *    case 'elevenlabs-tts':
- *      return await generateElevenLabsTTS(config, text);
- * 4. In i18n.ts:
- *    providerElevenLabsTTS: 'ElevenLabs TTS' / 'ElevenLabs Text-to-Speech'
  */
 
 // ============================================================================
@@ -80,15 +44,7 @@
  * Keep in sync with TTS_PROVIDERS registry in constants.ts
  */
 export type BuiltInTTSProviderId =
-  | 'openai-tts'
   | 'azure-tts'
-  | 'glm-tts'
-  | 'qwen-tts'
-  | 'voxcpm-tts'
-  | 'doubao-tts'
-  | 'elevenlabs-tts'
-  | 'minimax-tts'
-  | 'lemonade-tts'
   | 'browser-native-tts';
 
 export type TTSProviderId = BuiltInTTSProviderId | `custom-tts-${string}`;
@@ -154,10 +110,7 @@ export interface TTSModelConfig {
  * Keep in sync with ASR_PROVIDERS registry in constants.ts
  */
 export type BuiltInASRProviderId =
-  | 'openai-whisper'
   | 'browser-native'
-  | 'qwen-asr'
-  | 'lemonade-asr'
   | 'azure-asr';
 
 export type ASRProviderId = BuiltInASRProviderId | `custom-asr-${string}`;

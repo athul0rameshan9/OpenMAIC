@@ -42,39 +42,39 @@ describe('agentVoiceOverrides', () => {
   it('setAgentVoiceOverride adds, replaces, and deletes entries per agent id', async () => {
     const store = await freshStore();
     const { setAgentVoiceOverride } = store.getState();
-    setAgentVoiceOverride('default-2', { providerId: 'qwen-tts', voiceId: 'Dylan' });
+    setAgentVoiceOverride('default-2', { providerId: 'azure-tts', voiceId: 'en-US-DavisNeural' });
     setAgentVoiceOverride('default-3', {
-      providerId: 'qwen-tts',
-      modelId: 'qwen3-tts-flash',
-      voiceId: 'Cherry',
+      providerId: 'azure-tts',
+      modelId: 'neural',
+      voiceId: 'en-US-JennyNeural',
     });
-    setAgentVoiceOverride('default-2', { providerId: 'qwen-tts', voiceId: 'Serena' });
+    setAgentVoiceOverride('default-2', { providerId: 'azure-tts', voiceId: 'en-US-GuyNeural' });
     expect(store.getState().agentVoiceOverrides).toEqual({
-      'default-2': { providerId: 'qwen-tts', voiceId: 'Serena' },
-      'default-3': { providerId: 'qwen-tts', modelId: 'qwen3-tts-flash', voiceId: 'Cherry' },
+      'default-2': { providerId: 'azure-tts', voiceId: 'en-US-GuyNeural' },
+      'default-3': { providerId: 'azure-tts', modelId: 'neural', voiceId: 'en-US-JennyNeural' },
     });
 
     // undefined deletes — the symmetric way back to deterministic auto-assignment
     setAgentVoiceOverride('default-2', undefined);
     expect(store.getState().agentVoiceOverrides).toEqual({
-      'default-3': { providerId: 'qwen-tts', modelId: 'qwen3-tts-flash', voiceId: 'Cherry' },
+      'default-3': { providerId: 'azure-tts', modelId: 'neural', voiceId: 'en-US-JennyNeural' },
     });
 
     // The write must actually reach storage (would break if a future
     // partialize omits the field) — sync storage writes synchronously.
     const blob = JSON.parse(storage.get('settings-storage')!);
     expect(blob.state.agentVoiceOverrides).toEqual({
-      'default-3': { providerId: 'qwen-tts', modelId: 'qwen3-tts-flash', voiceId: 'Cherry' },
+      'default-3': { providerId: 'azure-tts', modelId: 'neural', voiceId: 'en-US-JennyNeural' },
     });
   });
 
   it('survives persist rehydration of an existing blob', async () => {
     const store = await freshStore({
-      agentVoiceOverrides: { 'default-2': { providerId: 'qwen-tts', voiceId: 'Dylan' } },
+      agentVoiceOverrides: { 'default-2': { providerId: 'azure-tts', voiceId: 'en-US-DavisNeural' } },
       agentSelectionIsUserSet: true,
     });
     expect(store.getState().agentVoiceOverrides).toEqual({
-      'default-2': { providerId: 'qwen-tts', voiceId: 'Dylan' },
+      'default-2': { providerId: 'azure-tts', voiceId: 'en-US-DavisNeural' },
     });
     expect(store.getState().agentSelectionIsUserSet).toBe(true);
   });

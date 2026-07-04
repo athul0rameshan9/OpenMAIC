@@ -10,9 +10,9 @@ import { resolveAgentVoice, type ProviderWithVoices } from '@/lib/audio/voice-re
 const agent = (id: string, voiceConfig?: AgentConfig['voiceConfig']) =>
   ({ id, voiceConfig }) as AgentConfig;
 
-const qwen: ProviderWithVoices = {
-  providerId: 'qwen-tts',
-  providerName: 'Qwen TTS',
+const azureTts: ProviderWithVoices = {
+  providerId: 'azure-tts',
+  providerName: 'Azure TTS',
   voices: [
     { id: 'Cherry', name: 'Cherry' },
     { id: 'Dylan', name: 'Dylan' },
@@ -23,37 +23,37 @@ const qwen: ProviderWithVoices = {
 describe('resolveAgentVoice with overrides', () => {
   it('prefers the override over voiceConfig and fallback', () => {
     const resolved = resolveAgentVoice(
-      agent('default-2', { providerId: 'qwen-tts', voiceId: 'Cherry' }),
+      agent('default-2', { providerId: 'azure-tts', voiceId: 'Cherry' }),
       0,
-      [qwen],
-      { 'default-2': { providerId: 'qwen-tts', voiceId: 'Dylan' } },
+      [azureTts],
+      { 'default-2': { providerId: 'azure-tts', voiceId: 'Dylan' } },
     );
-    expect(resolved).toEqual({ providerId: 'qwen-tts', modelId: undefined, voiceId: 'Dylan' });
+    expect(resolved).toEqual({ providerId: 'azure-tts', modelId: undefined, voiceId: 'Dylan' });
   });
 
   it('ignores an override whose provider is not enabled, falling back to voiceConfig', () => {
     const resolved = resolveAgentVoice(
-      agent('default-2', { providerId: 'qwen-tts', voiceId: 'Cherry' }),
+      agent('default-2', { providerId: 'azure-tts', voiceId: 'Cherry' }),
       0,
-      [qwen],
-      { 'default-2': { providerId: 'openai-tts', voiceId: 'alloy' } },
+      [azureTts],
+      { 'default-2': { providerId: 'browser-native-tts', voiceId: 'alloy' } },
     );
-    expect(resolved).toEqual({ providerId: 'qwen-tts', modelId: undefined, voiceId: 'Cherry' });
+    expect(resolved).toEqual({ providerId: 'azure-tts', modelId: undefined, voiceId: 'Cherry' });
   });
 
   it('ignores an override whose voice is unknown to the provider', () => {
-    const resolved = resolveAgentVoice(agent('default-2'), 1, [qwen], {
-      'default-2': { providerId: 'qwen-tts', voiceId: 'NotAVoice' },
+    const resolved = resolveAgentVoice(agent('default-2'), 1, [azureTts], {
+      'default-2': { providerId: 'azure-tts', voiceId: 'NotAVoice' },
     });
     // falls through to deterministic fallback: voices[1 % 2] = Dylan
-    expect(resolved).toEqual({ providerId: 'qwen-tts', voiceId: 'Dylan' });
+    expect(resolved).toEqual({ providerId: 'azure-tts', voiceId: 'Dylan' });
   });
 
   it('only applies the override of the matching agent id', () => {
-    const resolved = resolveAgentVoice(agent('default-3'), 0, [qwen], {
-      'default-2': { providerId: 'qwen-tts', voiceId: 'Dylan' },
+    const resolved = resolveAgentVoice(agent('default-3'), 0, [azureTts], {
+      'default-2': { providerId: 'azure-tts', voiceId: 'Dylan' },
     });
-    expect(resolved).toEqual({ providerId: 'qwen-tts', voiceId: 'Cherry' });
+    expect(resolved).toEqual({ providerId: 'azure-tts', voiceId: 'Cherry' });
   });
 
   it('honors a browser-native override only when browser-native is selectable', () => {
@@ -66,11 +66,11 @@ describe('resolveAgentVoice with overrides', () => {
     const override = {
       'default-2': { providerId: 'browser-native-tts' as const, voiceId: 'Anna' },
     };
-    expect(resolveAgentVoice(agent('default-2'), 0, [qwen], override)).toEqual({
-      providerId: 'qwen-tts',
+    expect(resolveAgentVoice(agent('default-2'), 0, [azureTts], override)).toEqual({
+      providerId: 'azure-tts',
       voiceId: 'Cherry',
     });
-    expect(resolveAgentVoice(agent('default-2'), 0, [qwen, browserNative], override)).toEqual({
+    expect(resolveAgentVoice(agent('default-2'), 0, [azureTts, browserNative], override)).toEqual({
       providerId: 'browser-native-tts',
       modelId: undefined,
       voiceId: 'Anna',

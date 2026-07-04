@@ -67,15 +67,7 @@ const LLM_ENV_MAP: Record<string, string> = {
 };
 
 const TTS_ENV_MAP: Record<string, string> = {
-  TTS_OPENAI: 'openai-tts',
   TTS_AZURE: 'azure-tts',
-  TTS_GLM: 'glm-tts',
-  TTS_QWEN: 'qwen-tts',
-  TTS_VOXCPM: 'voxcpm-tts',
-  TTS_DOUBAO: 'doubao-tts',
-  TTS_ELEVENLABS: 'elevenlabs-tts',
-  TTS_MINIMAX: 'minimax-tts',
-  TTS_LEMONADE: 'lemonade-tts',
 };
 
 /**
@@ -89,10 +81,7 @@ const TTS_DISABLE_ENV_MAP: Record<string, string> = {
 };
 
 const ASR_ENV_MAP: Record<string, string> = {
-  ASR_OPENAI: 'openai-whisper',
-  ASR_QWEN: 'qwen-asr',
   ASR_AZURE: 'azure-asr',
-  ASR_LEMONADE: 'lemonade-asr',
 };
 
 const PDF_ENV_MAP: Record<string, string> = {

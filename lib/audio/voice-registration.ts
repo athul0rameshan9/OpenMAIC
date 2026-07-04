@@ -2,15 +2,14 @@
  * Provider-neutral voice-registration seam.
  *
  * The "auto voice" timbre-stability pattern — synthesize a voice-design once,
- * register it, then reference it by id — is not VoxCPM-specific. Any TTS
- * backend that can register/clone a voice (VoxCPM/vLLM-Omni today; ElevenLabs,
- * MiniMax, Doubao, … later) plugs in by implementing `VoiceRegistrationAdapter`
- * and registering it below. Server routes and the client orchestrator dispatch
- * by `providerId` and never name a concrete provider.
+ * register it, then reference it by id — is not provider-specific. Any TTS
+ * backend that can register/clone a voice plugs in by implementing
+ * `VoiceRegistrationAdapter` and registering it below. Server routes and
+ * the client orchestrator dispatch by `providerId` and never name a concrete
+ * provider.
  */
 
 import type { VoiceDesign } from '@/lib/audio/voice-design';
-import { voxcpmVoiceRegistrationAdapter } from '@/lib/audio/voxcpm-registration';
 
 /** Resolved backend connection for a registration call (server-injected for managed providers). */
 export interface VoiceRegistrationConfig {
@@ -37,9 +36,7 @@ export interface VoiceRegistrationAdapter {
 }
 
 /** providerId → adapter. The only seam to touch when adding a provider. */
-const VOICE_REGISTRATION_ADAPTERS: Record<string, VoiceRegistrationAdapter> = {
-  'voxcpm-tts': voxcpmVoiceRegistrationAdapter,
-};
+const VOICE_REGISTRATION_ADAPTERS: Record<string, VoiceRegistrationAdapter> = {};
 
 export function getVoiceRegistrationAdapter(
   providerId: string,

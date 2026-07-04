@@ -5,19 +5,13 @@ import {
 } from '@/lib/audio/voice-registration';
 
 describe('voice-registration provider dispatch', () => {
-  it('resolves an adapter for a registration-capable provider', () => {
-    expect(getVoiceRegistrationAdapter('voxcpm-tts')).toBeDefined();
-  });
-
   it('returns undefined for providers without an adapter', () => {
-    expect(getVoiceRegistrationAdapter('openai-tts')).toBeUndefined();
-    expect(supportsVoiceRegistration('openai-tts')).toBe(false);
+    expect(getVoiceRegistrationAdapter('azure-tts')).toBeUndefined();
+    expect(supportsVoiceRegistration('azure-tts')).toBe(false);
   });
 
-  it('honors per-provider capability (voxcpm only with the vllm-omni backend)', () => {
-    expect(supportsVoiceRegistration('voxcpm-tts', { backend: 'vllm-omni' })).toBe(true);
-    expect(supportsVoiceRegistration('voxcpm-tts', { backend: 'nano-vllm' })).toBe(false);
-    // default backend (vllm-omni) when unspecified
-    expect(supportsVoiceRegistration('voxcpm-tts')).toBe(true);
+  it('returns undefined for browser-native-tts', () => {
+    expect(getVoiceRegistrationAdapter('browser-native-tts')).toBeUndefined();
+    expect(supportsVoiceRegistration('browser-native-tts')).toBe(false);
   });
 });

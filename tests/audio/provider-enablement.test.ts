@@ -19,27 +19,10 @@ import {
 
 describe('isTTSProviderConfigured', () => {
   it('key-requiring provider needs an API key', () => {
-    expect(isTTSProviderConfigured('openai-tts', {})).toBe(false);
-    expect(isTTSProviderConfigured('openai-tts', { apiKey: '  ' })).toBe(false);
-    expect(isTTSProviderConfigured('openai-tts', { apiKey: 'sk-x' })).toBe(true);
-    expect(isTTSProviderConfigured('openai-tts', { isServerConfigured: true })).toBe(true);
-  });
-
-  it('keyless local provider is NOT shown from the registry defaultBaseUrl alone (Lemonade fix)', () => {
-    // lemonade-tts has a registry defaultBaseUrl; with no explicit config it
-    // must be unavailable (symptom 1).
-    expect(isTTSProviderConfigured('lemonade-tts', {})).toBe(false);
-    expect(isTTSProviderConfigured('lemonade-tts', undefined)).toBe(false);
-    // Explicit base URL or server config makes it available.
-    expect(isTTSProviderConfigured('lemonade-tts', { baseUrl: 'http://localhost:13305/v1' })).toBe(
-      true,
-    );
-    expect(isTTSProviderConfigured('lemonade-tts', { isServerConfigured: true })).toBe(true);
-  });
-
-  it('VoxCPM requires an explicit base URL (or server config)', () => {
-    expect(isTTSProviderConfigured('voxcpm-tts', {})).toBe(false);
-    expect(isTTSProviderConfigured('voxcpm-tts', { baseUrl: 'http://127.0.0.1:8000' })).toBe(true);
+    expect(isTTSProviderConfigured('azure-tts', {})).toBe(false);
+    expect(isTTSProviderConfigured('azure-tts', { apiKey: '  ' })).toBe(false);
+    expect(isTTSProviderConfigured('azure-tts', { apiKey: 'sk-x' })).toBe(true);
+    expect(isTTSProviderConfigured('azure-tts', { isServerConfigured: true })).toBe(true);
   });
 
   it('browser-native is always configured (runs in-browser)', () => {
@@ -58,24 +41,22 @@ describe('isTTSProviderConfigured', () => {
 
 describe('isTTSProviderEnabled', () => {
   it('honors the per-provider enabled flag (default on)', () => {
-    expect(isTTSProviderEnabled('openai-tts', { apiKey: 'k' })).toBe(true);
-    expect(isTTSProviderEnabled('openai-tts', { apiKey: 'k', enabled: true })).toBe(true);
-    expect(isTTSProviderEnabled('openai-tts', { apiKey: 'k', enabled: false })).toBe(false);
+    expect(isTTSProviderEnabled('azure-tts', { apiKey: 'k' })).toBe(true);
+    expect(isTTSProviderEnabled('azure-tts', { apiKey: 'k', enabled: true })).toBe(true);
+    expect(isTTSProviderEnabled('azure-tts', { apiKey: 'k', enabled: false })).toBe(false);
   });
 
   it('server-disable overrides the user toggle (server precedence)', () => {
     expect(
-      isTTSProviderEnabled('openai-tts', { apiKey: 'k', enabled: true, serverDisabled: true }),
+      isTTSProviderEnabled('azure-tts', { apiKey: 'k', enabled: true, serverDisabled: true }),
     ).toBe(false);
   });
 
   it('an unconfigured provider is never enabled', () => {
-    expect(isTTSProviderEnabled('openai-tts', { enabled: true })).toBe(false);
-    expect(isTTSProviderEnabled('lemonade-tts', { enabled: true })).toBe(false);
+    expect(isTTSProviderEnabled('azure-tts', { enabled: true })).toBe(false);
   });
 
   it('browser-native is opt-in: default OFF, on only when explicitly enabled', () => {
-    // Default persisted config flips browser-native to enabled:false (#665).
     expect(isTTSProviderEnabled('browser-native-tts', { enabled: false })).toBe(false);
     expect(isTTSProviderEnabled('browser-native-tts', { enabled: true })).toBe(true);
     // Server can force it off even when the user enabled it.
@@ -87,16 +68,13 @@ describe('isTTSProviderEnabled', () => {
 
 describe('listEnabledTTSProviderIds / hasAnyEnabledTTSProvider', () => {
   const config: Record<string, TTSEnablementConfig> = {
-    'openai-tts': { apiKey: 'k', enabled: true },
-    'qwen-tts': { apiKey: 'k', enabled: false }, // configured but user-disabled
-    'lemonade-tts': {}, // unconfigured (no explicit baseUrl)
-    'voxcpm-tts': { baseUrl: 'http://127.0.0.1:8000', serverDisabled: true }, // server off
+    'azure-tts': { apiKey: 'k', enabled: true },
     'browser-native-tts': { enabled: false }, // opt-in, off
     'custom-tts-foo': { customVoices: [{ id: 'v', name: 'V' }] },
   };
 
   it('lists only enabled providers in canonical registry order', () => {
-    expect(listEnabledTTSProviderIds(config)).toEqual(['openai-tts', 'custom-tts-foo']);
+    expect(listEnabledTTSProviderIds(config)).toEqual(['azure-tts', 'custom-tts-foo']);
   });
 
   it('hasAny reflects emptiness', () => {
