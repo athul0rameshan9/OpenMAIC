@@ -77,8 +77,7 @@ import { useImportClassroom } from '@/lib/import/use-import-classroom';
 import { shouldShowVocationalTestUi } from '@/lib/config/feature-flags';
 import { useImportPptx } from '@/lib/import/use-import-pptx';
 import { TextbookBrowser } from '@/components/textbook-browser';
-import { ChunkPreview } from '@/components/textbook-browser/chunk-preview';
-import { useTextbookSearch } from '@/lib/hooks/use-textbook-search';
+
 import type { Textbook } from '@/lib/types/textbook';
 
 const log = createLogger('Home');
@@ -124,8 +123,7 @@ function HomePage() {
   const [activeTab, setActiveTab] = useState<'textbook' | 'free'>('textbook');
   const [selectedTextbook, setSelectedTextbook] = useState<Textbook | null>(null);
   const [textbookPrompt, setTextbookPrompt] = useState('');
-  const [showChunkPreview, setShowChunkPreview] = useState(false);
-  const { chunks, loading: chunksLoading, error: chunksError, search: searchChunks, reset: resetChunks } = useTextbookSearch();
+
 
   // Draft cache for requirement text
   const { cachedValue: cachedRequirement, updateCache: updateRequirementCache } =
@@ -416,11 +414,7 @@ function HomePage() {
   // ═══ Textbook-grounded generation ═══
   const canGenerateFromTextbook = !!selectedTextbook && !!textbookPrompt.trim() && hasUsableProvider;
 
-  const handleSearchTextbook = async () => {
-    if (!selectedTextbook || !textbookPrompt.trim()) return;
-    setShowChunkPreview(true);
-    await searchChunks(selectedTextbook.textbook_id, textbookPrompt.trim());
-  };
+
 
   const handleGenerateFromTextbook = async () => {
     if (!selectedTextbook || !textbookPrompt.trim()) return;
@@ -428,7 +422,17 @@ function HomePage() {
 
     try {
       const userProfile = useUserProfileStore.getState();
-      const ragContext = chunks.map((c) => c.text).join('\n\n---\n\n');
+
+      // Fetch full chapter content instead of using semantic search chunks
+      const contentRes = await fetch('/api/textbook-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ textbook_id: selectedTextbook.textbook_id }),
+      });
+      const contentJson = await contentRes.json();
+      if (!contentJson.success) {
+        throw new Error(contentJson.error || 'Failed to fetch textbook content');
+      }
 
       const requirements: UserRequirements = {
         requirement: textbookPrompt,
@@ -439,15 +443,14 @@ function HomePage() {
       const sessionState = {
         sessionId: nanoid(),
         requirements,
-        pdfText: '',
+        pdfText: contentJson.content,
         pdfImages: [],
         imageStorageIds: [],
         sceneOutlines: null,
         currentStep: 'generating' as const,
         textbookId: selectedTextbook.textbook_id,
         textbookTitle: selectedTextbook.title,
-        ragChunks: chunks,
-        ragContext,
+        ragContext: '',
       };
       sessionStorage.setItem('generationSession', JSON.stringify(sessionState));
 
@@ -462,8 +465,7 @@ function HomePage() {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       if (activeTab === 'textbook' && canGenerateFromTextbook) {
-        if (showChunkPreview && chunks.length > 0) handleGenerateFromTextbook();
-        else handleSearchTextbook();
+        handleGenerateFromTextbook();
       } else if (activeTab === 'free' && canGenerate) {
         handleGenerate();
       }
@@ -655,8 +657,6 @@ function HomePage() {
                   selectedTextbook={selectedTextbook}
                   onSelectTextbook={(tb) => {
                     setSelectedTextbook(tb);
-                    setShowChunkPreview(false);
-                    resetChunks();
                   }}
                 />
               </div>
@@ -814,7 +814,7 @@ function HomePage() {
                       <BookOpen className="h-4 w-4 shrink-0" style={{ color: '#722ed1' }} />
                       <span style={{ fontSize: '12px', fontWeight: 500 }} className="truncate">{selectedTextbook.title}</span>
                       <button
-                        onClick={() => { setSelectedTextbook(null); setShowChunkPreview(false); resetChunks(); }}
+                        onClick={() => { setSelectedTextbook(null); }}
                         className="ml-auto shrink-0"
                       >
                         <IconX size={14} style={{ color: '#6b7280' }} />
@@ -834,13 +834,12 @@ function HomePage() {
                         placeholder="e.g. Explain sample space with an example…"
                         style={{ flex: 1, height: '36px', borderRadius: '6px', border: '1px solid #e5e7eb', background: '#fafafa', padding: '0 12px', fontSize: '13px', color: '#1a1a2e', outline: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                         value={textbookPrompt}
-                        onChange={(e) => { setTextbookPrompt(e.target.value); setShowChunkPreview(false); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (!showChunkPreview) handleSearchTextbook(); else if (chunks.length > 0) handleGenerateFromTextbook(); } }}
+                        onChange={(e) => { setTextbookPrompt(e.target.value); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleGenerateFromTextbook(); } }}
                         disabled={!selectedTextbook}
                       />
-                      {!showChunkPreview ? (
-                        <button
-                          onClick={handleSearchTextbook}
+                      <button
+                          onClick={handleGenerateFromTextbook}
                           disabled={!canGenerateFromTextbook}
                           className="v1-enter-btn flex items-center"
                           style={{
@@ -859,41 +858,12 @@ function HomePage() {
                             boxShadow: canGenerateFromTextbook ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
                           }}
                         >
-                          <IconSearch size={14} /> Search
-                        </button>
-                      ) : (
-                        <button
-                          onClick={handleGenerateFromTextbook}
-                          disabled={!canGenerateFromTextbook || chunks.length === 0}
-                          className="v1-enter-btn flex items-center"
-                          style={{
-                            gap: '6px',
-                            background: canGenerateFromTextbook && chunks.length > 0 ? '#722ed1' : '#e5e7eb',
-                            color: canGenerateFromTextbook && chunks.length > 0 ? '#fff' : '#9ca3af',
-                            border: 'none',
-                            borderRadius: '9px',
-                            padding: '0 18px',
-                            height: '36px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            fontFamily: "'Plus Jakarta Sans', sans-serif",
-                            cursor: canGenerateFromTextbook && chunks.length > 0 ? 'pointer' : 'not-allowed',
-                            transition: 'background 0.15s',
-                            boxShadow: canGenerateFromTextbook && chunks.length > 0 ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
-                          }}
-                        >
                           <ArrowUp className="size-3.5" /> Generate
                         </button>
-                      )}
                     </div>
                   </div>
 
-                  {/* Chunk preview */}
-                  {showChunkPreview && (
-                    <div style={{ borderRadius: '16px', border: '1px solid #e5e7eb', background: '#fff', padding: '12px', maxHeight: '250px', overflowY: 'auto' }}>
-                      <ChunkPreview chunks={chunks} loading={chunksLoading} error={chunksError} />
-                    </div>
-                  )}
+
                 </div>
               ) : (
                 /* Free prompt mode */

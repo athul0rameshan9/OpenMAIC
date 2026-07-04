@@ -373,6 +373,8 @@ export async function POST(req: NextRequest) {
     let effectivePdfContent = 'None';
     if (ragContext && textbookTitle) {
       effectivePdfContent = `[Relevant excerpts from textbook "${textbookTitle}"]\n\n${ragContext}`;
+    } else if (pdfText && textbookTitle) {
+      effectivePdfContent = `[IMPORTANT: Full chapter content from textbook "${textbookTitle}". You MUST base your course directly on this material — use its exact definitions, examples, explanations, formulas, and logical structure. Do not invent new examples when the textbook already provides them. Follow the chapter's pedagogical progression.]\n\n${pdfText.substring(0, MAX_PDF_CONTENT_CHARS)}`;
     } else if (pdfText) {
       effectivePdfContent = pdfText.substring(0, MAX_PDF_CONTENT_CHARS);
     }
