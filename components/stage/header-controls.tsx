@@ -5,6 +5,7 @@ import {
   Archive,
   Download,
   FileDown,
+  GraduationCap,
   Loader2,
   Monitor,
   Moon,
@@ -19,6 +20,7 @@ import { useStageStore } from '@/lib/store';
 import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useExportPPTX } from '@/lib/export/use-export-pptx';
 import { useExportClassroom } from '@/lib/export/use-export-classroom';
+import { useStudentAssistantStore } from '@/lib/store/student-assistant';
 import { LanguageSwitcher } from '../language-switcher';
 import { SettingsDialog } from '../settings';
 import {
@@ -65,6 +67,8 @@ export function HeaderControls({
   const { t } = useI18n();
   const { theme, setTheme } = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const isAssistantOpen = useStudentAssistantStore((s) => s.isOpen);
+  const toggleAssistant = useStudentAssistantStore((s) => s.toggle);
 
   // Export plumbing — uses the stage / media task stores to check
   // readiness, then hands off to the export hooks. Available in both
@@ -172,6 +176,21 @@ export function HeaderControls({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Student Assistant */}
+        <button
+          onClick={toggleAssistant}
+          className={cn(
+            'p-2 rounded-full transition-all group focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none',
+            isAssistantOpen
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm',
+          )}
+          aria-label="Study Assistant"
+          title="Study Assistant"
+        >
+          <GraduationCap className="w-4 h-4" />
+        </button>
 
         {/* Settings */}
         <button
