@@ -1009,7 +1009,7 @@ function GenerationPreviewContent() {
 
       // Persist to Supabase so the classroom is accessible cross-browser
       try {
-        const { stage: stageData, scenes } = store.getState();
+        const { stage: stageData, scenes } = store;
         await fetch('/api/classroom', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
