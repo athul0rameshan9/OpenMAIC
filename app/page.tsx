@@ -77,6 +77,7 @@ import { useImportClassroom } from '@/lib/import/use-import-classroom';
 import { shouldShowVocationalTestUi } from '@/lib/config/feature-flags';
 import { useImportPptx } from '@/lib/import/use-import-pptx';
 import { TextbookBrowser } from '@/components/textbook-browser';
+import { HomeAgentChat } from '@/components/home-agent/home-agent-chat';
 
 import type { Textbook } from '@/lib/types/textbook';
 
@@ -1064,6 +1065,7 @@ function HomePage() {
           </div>
         </main>
       </div>
+      <HomeAgentChat />
     </div>
   );
 }

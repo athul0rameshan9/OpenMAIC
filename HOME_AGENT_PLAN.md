@@ -8,8 +8,7 @@
 |------|---------------|
 | **Multiple `useChat` hooks** | Each `useChat` instance from `@ai-sdk/react` is fully independent — own state, own transport. The existing student assistant's `useChat` won't be affected. |
 | **API routes** | New `/api/home-agent/*` namespace has zero collision with existing routes (`/api/student-assistant/`, `/api/chat/`, `/api/courses/`) |
-| **MCP SDK** | `@modelcontextprotocol/sdk@^1.27.1` is already installed but **completely unused** in any source file — importing it introduces no conflicts |
-| **Docker** | Only port 3000 is allocated; port 3001 (or any other) is free for a calendar MCP sidecar |
+| **Docker** | Only port 3000 is allocated; no additional services needed |
 | **Zustand stores** | Each store uses its own `persist` key in localStorage. New store just needs a unique key (e.g., `'home-agent-storage'`) |
 | **Vercel deployment** | `vercel.json` allows 300s max duration for all `/api/**` routes — sufficient for streaming chat + calendar calls |
 | **Existing student assistant** | Lives only inside `components/stage.tsx` (classroom view). It never renders on the home page. Completely isolated. |
@@ -24,17 +23,17 @@
 | **z-index layering** | Student assistant panel uses `z-50`. If both could theoretically render on same page | Use `z-40` for home agent (it only shows on home page where student assistant doesn't render) |
 | **Dark mode** | Home page hardcodes `background: '#ffffff'` inline — a Tailwind `bg-background` widget would mismatch in dark mode | Match the inline style approach for the chat panel, or use CSS variables |
 | **No per-user auth** | App uses site-wide access code only. Google OAuth needs per-user token storage | Introduce a lightweight user identity (browser-generated UUID persisted in localStorage + Supabase) |
-| **Vercel stateless functions** | Can't maintain persistent MCP stdio connections across requests | Use direct Google Calendar REST API calls wrapped as AI SDK tools (not a persistent MCP server process) |
+| **Vercel stateless functions** | Serverless functions are stateless | Direct Google Calendar REST API calls via `@googleapis/calendar` — each request makes simple HTTP calls, no persistent connections needed |
 | **Zod 4 compatibility** | Project uses Zod 4.3.5; `googleapis` package should work fine but verify | Test in dev before deploying |
 | **Bundle size** | `googleapis` package is large (~1.5MB) | Use `@googleapis/calendar` (tree-shakeable single-service package) instead |
-| **`GOOGLE_API_KEY` confusion** | Already exists for Gemini LLM | Name calendar vars `GOOGLE_CALENDAR_CLIENT_ID` / `GOOGLE_CALENDAR_CLIENT_SECRET` |
+| **`GOOGLE_API_KEY` confusion** | Already exists for Gemini LLM | Name calendar vars `GOOGLE_CALENDAR_CLIENT_ID` / `GOOGLE_CALENDAR_CLIENT_SECRET` to disambiguate |
 
-### ❌ WILL NOT WORK AS-IS — Needs Design Change
+### ✅ Design Decisions (Resolved)
 
-| Original Plan | Problem | Solution |
-|---------------|---------|----------|
-| MCP stdio sidecar for Google Calendar | Vercel serverless functions are stateless — can't keep a child process running | **Option A:** Use direct Google Calendar API via `@googleapis/calendar` (recommended for Vercel). **Option B:** Self-host a remote MCP server (Streamable HTTP) and call it from Vercel functions |
-| Store OAuth tokens in Supabase per-user | No user accounts exist | Introduce lightweight user identity: generate UUID on first visit, store in localStorage, link to Supabase |
+| Area | Approach |
+|------|----------|
+| Google Calendar integration | Direct REST API via `@googleapis/calendar` — simple HTTP calls per request, works perfectly in serverless, supports recurring events/RRULE, batch operations, and all Calendar API features |
+| Per-user token storage | Lightweight user identity: generate UUID on first visit, store in localStorage + cookie, link to Supabase `user_identities` table |
 
 ---
 
@@ -62,10 +61,13 @@
 │  Tools (called by LLM):                              │
 │   • query_courses → Supabase courses table           │
 │   • search_content → Qdrant RAG                      │
-│   • calendar_list_events → Google Calendar API       │
-│   • calendar_create_event → Google Calendar API      │
-│   • calendar_get_freebusy → Google Calendar API      │
-│   • calendar_search_events → Google Calendar API     │
+│   • calendar_list_events → Google Calendar REST API  │
+│   • calendar_create_event → Google Calendar REST API │
+│   •   (supports RRULE for recurring timetables)      │
+│   • calendar_get_freebusy → Google Calendar REST API │
+│   • calendar_search_events → Google Calendar REST API│
+│   • calendar_update_event → Google Calendar REST API │
+│   • calendar_delete_event → Google Calendar REST API │
 └─────────────────────────────────────────────────────┘
          │                    │
          ▼                    ▼
@@ -87,7 +89,7 @@
 |---|------|---------|--------------|
 | 0.1 | **Create Google Cloud OAuth credentials** | Go to Google Cloud Console → Create project → Enable Calendar API → Create OAuth 2.0 Web credentials → Add `http://localhost:3000/api/auth/google/callback` as redirect URI | None |
 | 0.2 | **Add environment variables** | Add to `.env.local`: `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_REDIRECT_URI`, `ENCRYPTION_KEY` (for token encryption) | 0.1 |
-| 0.3 | **Install dependencies** | `pnpm add @googleapis/calendar google-auth-library @schedule-x/react @schedule-x/theme-default` | None |
+| 0.3 | **Install dependencies** | `pnpm add @googleapis/calendar google-auth-library @schedule-x/react @schedule-x/theme-default date-fns` | None |
 | 0.4 | **Create Supabase tables** | `user_identities` (id, browser_uuid, created_at) + `user_oauth_tokens` (id, user_id, provider, encrypted_refresh_token, encrypted_access_token, expires_at, scopes, created_at) | None |
 
 ### Phase 1: User Identity & OAuth (Backend)
@@ -106,7 +108,7 @@
 | # | Task | Details | Dependencies |
 |---|------|---------|--------------|
 | 2.1 | **Create calendar client factory** | `lib/home-agent/calendar-client.ts` — creates authenticated `@googleapis/calendar` client from stored tokens | 1.6 |
-| 2.2 | **Create calendar tools for AI SDK** | `lib/home-agent/tools/calendar-tools.ts` — define Vercel AI SDK `tool()` definitions: `calendar_list_events`, `calendar_create_event`, `calendar_get_freebusy`, `calendar_search_events`, `calendar_update_event`, `calendar_delete_event` | 2.1 |
+| 2.2 | **Create calendar tools for AI SDK** | `lib/home-agent/tools/calendar-tools.ts` — define Vercel AI SDK `tool()` definitions: `calendar_list_events`, `calendar_create_event` (with RRULE support for recurring timetables), `calendar_get_freebusy`, `calendar_search_events`, `calendar_update_event`, `calendar_delete_event`. Supports: periodic schedules, multi-month timetables, recurring study sessions via RFC 5545 recurrence rules | 2.1 |
 | 2.3 | **Create course tools** | `lib/home-agent/tools/course-tools.ts` — `query_courses` (fetches from Supabase), `search_course_content` (Qdrant RAG search) | None |
 | 2.4 | **Create calendar events API route** | `app/api/home-agent/events/route.ts` — direct event fetch for the calendar widget (not through LLM) | 2.1 |
 
@@ -256,22 +258,21 @@ if (pathname.startsWith('/api/access-code/') || pathname === '/api/health'
 
 ---
 
-## Docker Compose Change (Optional — Development Only)
+## Google Calendar API Capabilities (Direct REST)
 
-If you want to use the MCP server locally for dev (not required for production):
-```yaml
-  google-calendar-mcp:
-    image: node:20-slim
-    working_dir: /app
-    command: npx -y @cocal/google-calendar-mcp --http --port 3001
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./secrets:/secrets:ro
-    environment:
-      - GOOGLE_OAUTH_CREDENTIALS=/secrets/gcp-oauth.keys.json
-      - ENABLED_TOOLS=list-events,create-event,search-events,get-freebusy,get-current-time,update-event,delete-event
-```
+The `@googleapis/calendar` package provides full access to all Calendar features:
+
+| Feature | How |
+|---------|-----|
+| **Single event** | `events.insert()` with start/end datetime |
+| **Recurring timetable** | `events.insert()` with `recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=24']` |
+| **2-month study plan** | Single API call with RRULE `UNTIL` or `COUNT` parameter |
+| **Periodic without specific dates** | LLM checks freebusy → picks slots → creates recurring event |
+| **Check availability** | `freebusy.query()` across date range |
+| **Batch creation** | Multiple `events.insert()` calls (~600/min rate limit) |
+| **Color-coded by course** | `colorId` field on events (12 colors available) |
+| **Update/reschedule** | `events.update()` or `events.patch()` |
+| **Delete single or series** | `events.delete()` with optional `sendUpdates` |
 
 ---
 
@@ -279,7 +280,7 @@ If you want to use the MCP server locally for dev (not required for production):
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Calendar API approach | Direct `@googleapis/calendar` REST calls (NOT MCP stdio) | Vercel serverless is stateless; can't maintain MCP child processes. Direct API calls are simpler and equally functional |
+| Calendar API approach | Direct `@googleapis/calendar` REST calls | Simple HTTP calls per request. Supports all features: recurring events, RRULE, batch ops, freebusy, colors. Works perfectly in serverless |
 | User identity | Browser UUID in cookie + Supabase `user_identities` table | No full auth system exists; this is the lightest-weight user identification that supports OAuth token storage |
 | Chat panel placement | Floating bottom-right overlay (z-40) | Avoids layout changes to existing home page; non-intrusive; similar to Intercom/Drift pattern |
 | Calendar widget placement | New "My Schedule" tab in left sidebar (alongside Classroom/Free Prompt) | Reuses existing tab pattern; doesn't require home page layout restructuring |
