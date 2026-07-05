@@ -25,18 +25,21 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get('state');
   const error = searchParams.get('error');
 
+  // Use nextUrl.origin which respects x-forwarded-host/proto headers behind proxies
+  const origin = req.nextUrl.origin;
+
   if (error) {
-    return NextResponse.redirect(new URL('/?calendar_error=' + encodeURIComponent(error), req.url));
+    return NextResponse.redirect(new URL('/?calendar_error=' + encodeURIComponent(error), origin));
   }
 
   if (!code || !state) {
-    return NextResponse.redirect(new URL('/?calendar_error=missing_params', req.url));
+    return NextResponse.redirect(new URL('/?calendar_error=missing_params', origin));
   }
 
   // Verify CSRF-signed state
   const userId = verifySignedState(state);
   if (!userId) {
-    return NextResponse.redirect(new URL('/?calendar_error=invalid_state', req.url));
+    return NextResponse.redirect(new URL('/?calendar_error=invalid_state', origin));
   }
 
   try {
@@ -45,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     if (!tokens.refresh_token || !tokens.access_token) {
       console.error('OAuth callback: missing tokens', { hasRefresh: !!tokens.refresh_token, hasAccess: !!tokens.access_token });
-      return NextResponse.redirect(new URL('/?calendar_error=no_tokens', req.url));
+      return NextResponse.redirect(new URL('/?calendar_error=no_tokens', origin));
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -53,7 +56,7 @@ export async function GET(req: NextRequest) {
     
     if (!supabaseUrl || !supabaseKey) {
       console.error('OAuth callback: missing Supabase config', { hasUrl: !!supabaseUrl, hasKey: !!supabaseKey });
-      return NextResponse.redirect(new URL('/?calendar_error=config_error', req.url));
+      return NextResponse.redirect(new URL('/?calendar_error=config_error', origin));
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -67,10 +70,10 @@ export async function GET(req: NextRequest) {
     }, supabase);
     console.log('OAuth callback: tokens stored successfully');
 
-    return NextResponse.redirect(new URL('/?calendar_connected=true', req.url));
+    return NextResponse.redirect(new URL('/?calendar_connected=true', origin));
   } catch (err) {
     console.error('OAuth callback error:', err);
     const message = err instanceof Error ? err.message : 'exchange_failed';
-    return NextResponse.redirect(new URL(`/?calendar_error=${encodeURIComponent(message)}`, req.url));
+    return NextResponse.redirect(new URL(`/?calendar_error=${encodeURIComponent(message)}`, origin));
   }
 }

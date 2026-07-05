@@ -12,11 +12,11 @@ RESOURCE_GROUP="rg-openmaic-dev"
 LOCATION="centralindia"
 ENVIRONMENT_NAME="cae-openmaic-dev"
 APP_NAME="ca-openmaic"
-IMAGE="ghcr.io/athul0rameshan9/openmaic:latest"  # <-- REPLACE with your GitHub username/org
+IMAGE="ghcr.io/athul0rameshan9/openmaic:latest"
 
 # GitHub Container Registry credentials (for private repos)
-GHCR_USERNAME="athul0rameshan9"  # <-- REPLACE
-GHCR_PAT="<YOUR_GITHUB_PAT>"           # <-- REPLACE (PAT with read:packages scope)
+GHCR_USERNAME="athul0rameshan9"
+GHCR_PAT="${GHCR_PAT:?Set GHCR_PAT env var (PAT with read:packages scope)}"           # <-- REPLACE (PAT with read:packages scope)
 
 # ---------- Step 1: Create Resource Group ----------
 echo "Creating resource group: $RESOURCE_GROUP in $LOCATION..."
@@ -102,7 +102,7 @@ az rest --method POST \
   --body "{
     \"name\": \"github-deploy-main\",
     \"issuer\": \"https://token.actions.githubusercontent.com\",
-    \"subject\": \"repo:<YOUR_GITHUB_ORG>/<YOUR_REPO_NAME>:ref:refs/heads/main\",
+    "subject": "repo:athul0rameshan9/OpenMAIC:ref:refs/heads/main",
     \"audiences\": [\"api://AzureADTokenExchange\"]
   }" \
   --output none 2>/dev/null || echo "(Federated credential may already exist)"
