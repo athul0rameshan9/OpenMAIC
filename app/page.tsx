@@ -77,6 +77,7 @@ import { shouldShowVocationalTestUi } from '@/lib/config/feature-flags';
 import { useImportPptx } from '@/lib/import/use-import-pptx';
 import { TextbookBrowser } from '@/components/textbook-browser';
 import { HomeAgentChat } from '@/components/home-agent/home-agent-chat';
+import { CalendarSidebar } from '@/components/home-agent/calendar-sidebar';
 
 import type { Textbook } from '@/lib/types/textbook';
 
@@ -292,6 +293,12 @@ function HomePage() {
     setPendingDeleteId(null);
     try {
       await deleteStageData(id);
+      // Also delete from Supabase (best-effort — classroom may only exist locally)
+      try {
+        await fetch(`/api/classroom?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      } catch {
+        log.warn('Supabase delete skipped (classroom may not exist server-side):', id);
+      }
       await loadClassrooms();
     } catch (err) {
       log.error('Failed to delete classroom:', err);
@@ -1060,6 +1067,9 @@ function HomePage() {
             </div>
           </div>
         </main>
+
+        {/* ── Right Calendar Sidebar ── */}
+        <CalendarSidebar />
       </div>
       <HomeAgentChat />
     </div>
@@ -1401,6 +1411,7 @@ function ClassroomCard({
       {/* Thumbnail — gradient with decorative elements */}
       <div
         ref={thumbRef}
+        className="group"
         style={{ aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg,#8b47ea 0%,#5b8af7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         {slide && thumbWidth > 0 ? (
