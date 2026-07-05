@@ -42,7 +42,6 @@ import {
   IconDeviceDesktop,
 } from '@tabler/icons-react';
 import { useI18n } from '@/lib/hooks/use-i18n';
-import { LanguageSwitcher } from '@/components/language-switcher';
 import { createLogger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { InputGroup, InputGroupInput, InputGroupButton } from '@/components/ui/input-group';
@@ -594,9 +593,6 @@ function HomePage() {
               </div>
             )}
           </div>
-
-          {/* Language */}
-          <LanguageSwitcher onOpen={() => setThemeOpen(false)} />
 
           {/* Settings */}
           <button

@@ -21,7 +21,6 @@ import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useExportPPTX } from '@/lib/export/use-export-pptx';
 import { useExportClassroom } from '@/lib/export/use-export-classroom';
 import { useStudentAssistantStore } from '@/lib/store/student-assistant';
-import { LanguageSwitcher } from '../language-switcher';
 import { SettingsDialog } from '../settings';
 import {
   DropdownMenu,
@@ -123,10 +122,6 @@ export function HeaderControls({
             : 'bg-white/60 dark:bg-gray-800/60 border border-gray-100/50 dark:border-gray-700/50 px-2 py-1.5',
         )}
       >
-        {/* Language — Radix DropdownMenu so its menu portals to body
-            and never gets clipped by an ancestor's overflow-hidden. */}
-        <LanguageSwitcher />
-
         {/* Theme — same Portal-backed DropdownMenu pattern. Non-modal keeps
             Radix from body scroll-locking a fixed-height classroom layout. */}
         <DropdownMenu modal={false}>
