@@ -1658,7 +1658,7 @@ export const useSettingsStore = create<SettingsState>()(
     },
     {
       name: 'settings-storage',
-      version: 4,
+      version: 5,
       // Migrate persisted state
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<SettingsState>;
@@ -1843,6 +1843,12 @@ export const useSettingsStore = create<SettingsState>()(
             const cfg = state.ttsProvidersConfig[pid];
             if (cfg) cfg.enabled = pid !== 'browser-native-tts';
           }
+        }
+
+        // v4 → v5: switch default Chinese TTS voice to English. The old default
+        // was zh-CN-XiaoxiaoNeural which produces Chinese-accented English.
+        if (version < 5 && state.ttsVoice && /^zh-CN-/.test(state.ttsVoice)) {
+          state.ttsVoice = 'en-US-JennyNeural';
         }
 
         ensureValidProviderSelections(state);
