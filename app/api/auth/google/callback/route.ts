@@ -25,8 +25,10 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get('state');
   const error = searchParams.get('error');
 
-  // Use nextUrl.origin which respects x-forwarded-host/proto headers behind proxies
-  const origin = req.nextUrl.origin;
+  // Derive the public origin from proxy headers (Azure Container Apps sets these)
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost:3000';
+  const proto = req.headers.get('x-forwarded-proto')?.split(',')[0] || 'https';
+  const origin = `${proto}://${host}`;
 
   if (error) {
     return NextResponse.redirect(new URL('/?calendar_error=' + encodeURIComponent(error), origin));
