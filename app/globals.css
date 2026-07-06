@@ -128,16 +128,33 @@
 
 /* ═══ Variant 1 — Light Playful ═══ */
 
+.v1-sidebar-item {
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
 .v1-sidebar-item:hover {
   background: #f8f7ff !important;
-  border-color: #e5e7eb !important;
+  border-color: #ece5ff !important;
 }
 
+.v1-quick-chip {
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
 .v1-quick-chip:hover {
   border-color: rgba(114,46,209,0.4) !important;
   color: #722ed1 !important;
+  background: #f8f7ff !important;
+  transform: translateY(-1px);
 }
 
+/* Card lifts on hover; overlay fades in over the thumbnail */
+.v1-session-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.v1-session-card:hover {
+  transform: translateY(-3px);
+  border-color: #e3d9ff !important;
+  box-shadow: 0 14px 30px -12px rgba(114,46,209,0.22) !important;
+}
 .v1-session-card:hover .v1-card-overlay {
   opacity: 1;
 }
@@ -147,13 +164,27 @@
   background: #f8f7ff;
 }
 
-.v1-enter-btn:hover {
-  background: #5b21b6 !important;
+/* Primary action button — smooth lift, deeper shadow; skip when disabled */
+.v1-enter-btn {
+  transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.v1-enter-btn:not(:disabled):hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(114,46,209,0.4) !important;
+}
+.v1-enter-btn:not(:disabled):active {
+  transform: translateY(0);
+  filter: brightness(0.97);
 }
 
+.v1-import-btn {
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
 .v1-import-btn:hover {
   border-color: #722ed1 !important;
   color: #722ed1 !important;
+  background: #faf8ff !important;
 }
 
 .v1-tool-chip:hover {
@@ -161,9 +192,23 @@
   color: #722ed1 !important;
 }
 
+.v1-feature-badge {
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
 .v1-feature-badge:hover {
   border-color: rgba(114,46,209,0.3) !important;
   color: #722ed1 !important;
+  background: #faf8ff !important;
+  transform: translateY(-1px);
+}
+
+/* Prompt composer — soft focus ring when any field inside is focused */
+.v1-prompt-box {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.v1-prompt-box:focus-within {
+  border-color: rgba(114,46,209,0.35) !important;
+  box-shadow: 0 4px 20px -4px rgba(114,46,209,0.16) !important;
 }
 
 @keyframes v1-pulse-dot {
@@ -174,9 +219,10 @@
   animation: v1-pulse-dot 2s ease-in-out infinite;
 }
 
-.v1-page ::-webkit-scrollbar { width: 4px; }
+.v1-page ::-webkit-scrollbar { width: 6px; height: 6px; }
 .v1-page ::-webkit-scrollbar-track { background: transparent; }
-.v1-page ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+.v1-page ::-webkit-scrollbar-thumb { background: #e3ddf2; border-radius: 3px; }
+.v1-page ::-webkit-scrollbar-thumb:hover { background: #cbbdec; }
 
 @layer base {
   * {

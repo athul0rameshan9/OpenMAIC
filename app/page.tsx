@@ -509,12 +509,12 @@ function HomePage() {
       />
 
       {/* ═══ Top Bar ═══ */}
-      <nav className="flex items-center shrink-0" style={{ height: '64px', background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '0 24px', gap: '16px' }}>
-        <div className="flex items-center gap-2" style={{ overflow: 'hidden', height: '44px' }}>
-          <img src="/logo-horizontal.png" alt="Katalyst" style={{ height: '150px', objectFit: 'contain' }} />
+      <nav className="flex items-center shrink-0" style={{ height: '116px', background: '#fff', borderBottom: '1px solid #eef0f3', padding: '0 24px', gap: '16px', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', position: 'relative', zIndex: 2 }}>
+        <div className="flex items-center gap-2" style={{ height: '104px' }}>
+          <img src="/logo-horizontal.png" alt="Katalyst" style={{ height: '104px', width: 'auto', objectFit: 'contain' }} />
         </div>
         <div className="flex-1 flex justify-center">
-          <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500, letterSpacing: '0.2px' }}>
+          <span style={{ fontSize: '17px', color: '#6b7280', fontWeight: 500, letterSpacing: '0.2px' }}>
             {t('home.slogan')}
           </span>
         </div>
@@ -621,15 +621,18 @@ function HomePage() {
             <button
               onClick={() => setActiveTab('textbook')}
               style={{
-                background: activeTab === 'textbook' ? '#722ed1' : 'transparent',
+                flex: 1,
+                background: activeTab === 'textbook' ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : 'transparent',
                 color: activeTab === 'textbook' ? '#fff' : '#6b7280',
-                borderRadius: '6px',
+                borderRadius: '7px',
                 border: 'none',
                 fontSize: '12px',
-                fontWeight: activeTab === 'textbook' ? 600 : 400,
+                fontWeight: activeTab === 'textbook' ? 600 : 500,
                 padding: '6px 12px',
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                 cursor: 'pointer',
+                boxShadow: activeTab === 'textbook' ? '0 2px 8px rgba(114,46,209,0.28)' : 'none',
+                transition: 'background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease',
               }}
             >
               Classroom
@@ -637,15 +640,18 @@ function HomePage() {
             <button
               onClick={() => setActiveTab('free')}
               style={{
-                background: activeTab === 'free' ? '#722ed1' : 'transparent',
+                flex: 1,
+                background: activeTab === 'free' ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : 'transparent',
                 color: activeTab === 'free' ? '#fff' : '#6b7280',
-                borderRadius: '6px',
+                borderRadius: '7px',
                 border: 'none',
                 fontSize: '12px',
-                fontWeight: activeTab === 'free' ? 600 : 400,
+                fontWeight: activeTab === 'free' ? 600 : 500,
                 padding: '6px 12px',
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
                 cursor: 'pointer',
+                boxShadow: activeTab === 'free' ? '0 2px 8px rgba(114,46,209,0.28)' : 'none',
+                transition: 'background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease',
               }}
             >
               Free Prompt
@@ -712,8 +718,9 @@ function HomePage() {
 
         {/* ── Right Content ── */}
         <main className="flex-1 flex flex-col" style={{ background: '#fafafa', overflow: 'hidden', position: 'relative' }}>
-          {/* Decorative radial gradient */}
-          <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle at 100% 0%, rgba(114,46,209,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+          {/* Decorative radial gradients */}
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '420px', height: '420px', background: 'radial-gradient(circle at 100% 0%, rgba(114,46,209,0.055) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '360px', height: '360px', background: 'radial-gradient(circle at 0% 100%, rgba(59,130,246,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
           {/* Right header */}
           <div className="shrink-0" style={{ padding: '14px 24px 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'relative', zIndex: 1 }}>
@@ -827,7 +834,7 @@ function HomePage() {
                   )}
 
                   {/* Prompt box */}
-                  <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #e5e7eb', padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+                  <div className="v1-prompt-box" style={{ background: '#fff', borderRadius: '20px', border: '1px solid #eceaf2', padding: '18px 20px', boxShadow: '0 2px 12px -4px rgba(16,24,40,0.06)' }}>
                     <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px', lineHeight: 1.65 }}>
                       {selectedTextbook
                         ? `What would you like to learn from "${selectedTextbook.title}"?`
@@ -848,7 +855,7 @@ function HomePage() {
                           className="v1-enter-btn flex items-center"
                           style={{
                             gap: '6px',
-                            background: canGenerateFromTextbook ? '#722ed1' : '#e5e7eb',
+                            background: canGenerateFromTextbook ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : '#e5e7eb',
                             color: canGenerateFromTextbook ? '#fff' : '#9ca3af',
                             border: 'none',
                             borderRadius: '9px',
@@ -873,7 +880,7 @@ function HomePage() {
                 /* Free prompt mode */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Prompt box */}
-                  <div style={{ background: '#fff', borderRadius: '20px', border: '1px solid #e5e7eb', padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
+                  <div className="v1-prompt-box" style={{ background: '#fff', borderRadius: '20px', border: '1px solid #eceaf2', padding: '18px 20px', boxShadow: '0 2px 12px -4px rgba(16,24,40,0.06)' }}>
                     <div className="flex items-center justify-between">
                       <GreetingBar />
                       <div className="shrink-0">
@@ -922,7 +929,7 @@ function HomePage() {
                           className="v1-enter-btn flex items-center"
                           style={{
                             gap: '6px',
-                            background: canGenerate ? '#722ed1' : '#e5e7eb',
+                            background: canGenerate ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : '#e5e7eb',
                             color: canGenerate ? '#fff' : '#9ca3af',
                             border: 'none',
                             borderRadius: '9px',
@@ -1407,7 +1414,7 @@ function ClassroomCard({
   };
 
   return (
-    <div className="v1-session-card" style={{ cursor: 'pointer', background: '#fff', borderRadius: '18px', border: '1px solid #f0ebff', padding: '10px', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }} onClick={confirmingDelete ? undefined : onClick}>
+    <div className="v1-session-card" style={{ cursor: 'pointer', background: '#fff', borderRadius: '18px', border: '1px solid #f0ebff', padding: '10px', boxShadow: '0 2px 10px -4px rgba(16,24,40,0.05)' }} onClick={confirmingDelete ? undefined : onClick}>
       {/* Thumbnail — gradient with decorative elements */}
       <div
         ref={thumbRef}
