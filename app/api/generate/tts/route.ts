@@ -20,6 +20,7 @@ import type { TTSProviderId } from '@/lib/audio/types';
 import { createLogger } from '@/lib/logger';
 import { apiError, apiSuccess } from '@/lib/server/api-response';
 import { validateUrlForSSRF } from '@/lib/server/ssrf-guard';
+import { uploadClassroomMedia, isValidClassroomId } from '@/lib/server/classroom-storage';
 
 const log = createLogger('TTS API');
 
@@ -31,17 +32,19 @@ export async function POST(req: NextRequest) {
   let audioId: string | undefined;
   try {
     const body = await req.json();
-    const { text, ttsModelId, ttsSpeed, ttsApiKey, ttsBaseUrl, ttsProviderOptions } = body as {
-      text: string;
-      audioId: string;
-      ttsProviderId: TTSProviderId;
-      ttsModelId?: string;
-      ttsVoice: string;
-      ttsSpeed?: number;
-      ttsApiKey?: string;
-      ttsBaseUrl?: string;
-      ttsProviderOptions?: Record<string, unknown>;
-    };
+    const { text, ttsModelId, ttsSpeed, ttsApiKey, ttsBaseUrl, ttsProviderOptions, classroomId } =
+      body as {
+        text: string;
+        audioId: string;
+        ttsProviderId: TTSProviderId;
+        ttsModelId?: string;
+        ttsVoice: string;
+        ttsSpeed?: number;
+        ttsApiKey?: string;
+        ttsBaseUrl?: string;
+        ttsProviderOptions?: Record<string, unknown>;
+        classroomId?: string;
+      };
     ttsProviderId = body.ttsProviderId;
     ttsVoice = body.ttsVoice;
     audioId = body.audioId;
@@ -101,7 +104,31 @@ export async function POST(req: NextRequest) {
     // Convert to base64
     const base64 = Buffer.from(audio).toString('base64');
 
-    return apiSuccess({ audioId, base64, format });
+    // Persist to Supabase Storage when generating for a classroom, so narration
+    // is playable from any browser — the client's IndexedDB cache is per-device.
+    // Both ids become storage path segments, so gate on the same charset check.
+    let audioUrl: string | undefined;
+    if (
+      classroomId &&
+      isValidClassroomId(classroomId) &&
+      /^[a-zA-Z0-9_-]+$/.test(audioId)
+    ) {
+      try {
+        const publicUrl = await uploadClassroomMedia(
+          classroomId,
+          `audio/${audioId}.${format}`,
+          Buffer.from(audio),
+          format === 'mp3' ? 'audio/mpeg' : `audio/${format}`,
+        );
+        // Regeneration reuses the same path and public URLs are CDN-cached —
+        // version the URL so edited lines don't replay stale audio.
+        audioUrl = `${publicUrl}?v=${Date.now()}`;
+      } catch (uploadError) {
+        log.warn(`Storage upload failed for ${audioId} (classroom ${classroomId}):`, uploadError);
+      }
+    }
+
+    return apiSuccess({ audioId, base64, format, audioUrl });
   } catch (error) {
     log.error(
       `TTS generation failed [provider=${ttsProviderId ?? 'unknown'}, voice=${ttsVoice ?? 'unknown'}, audioId=${audioId ?? 'unknown'}]:`,

@@ -130,15 +130,22 @@ async function fetchSceneActions(
   return response.json();
 }
 
-/** Generate TTS for one speech action and store in IndexedDB */
+/**
+ * Generate TTS for one speech action and store in IndexedDB.
+ *
+ * Also uploads to Supabase Storage (classroom-media bucket) when a classroom id
+ * is known — from the param or the active stage — and returns the public
+ * audio URL so callers can stamp `action.audioUrl` for cross-browser playback.
+ */
 export async function generateAndStoreTTS(
   audioId: string,
   text: string,
   language?: string,
   signal?: AbortSignal,
-): Promise<void> {
+  classroomId?: string,
+): Promise<string | null> {
   const settings = useSettingsStore.getState();
-  if (settings.ttsProviderId === 'browser-native-tts') return;
+  if (settings.ttsProviderId === 'browser-native-tts') return null;
   // Don't server-generate against a disabled/unconfigured provider (#665).
   if (
     !isTTSProviderEnabled(
@@ -146,7 +153,7 @@ export async function generateAndStoreTTS(
       settings.ttsProvidersConfig?.[settings.ttsProviderId],
     )
   )
-    return;
+    return null;
 
   const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
   // Narration is the teacher's voice — resolve it from the teacher agent profile
@@ -174,6 +181,7 @@ export async function generateAndStoreTTS(
       ttsBaseUrl:
         ttsProviderConfig?.baseUrl || ttsProviderConfig?.customDefaultBaseUrl || undefined,
       ttsProviderOptions: providerOptions,
+      classroomId: classroomId ?? useStageStore.getState().stage?.id,
     }),
     signal,
   });
@@ -201,6 +209,8 @@ export async function generateAndStoreTTS(
     format: data.format,
     createdAt: Date.now(),
   });
+
+  return typeof data.audioUrl === 'string' ? data.audioUrl : null;
 }
 
 /** Generate TTS for all speech actions in a scene. Returns result. */
@@ -228,7 +238,8 @@ async function generateTTSForScene(
     const audioId = `tts_s${sceneOrder}_${action.id}`;
     action.audioId = audioId;
     try {
-      await generateAndStoreTTS(audioId, action.text, language, signal);
+      const audioUrl = await generateAndStoreTTS(audioId, action.text, language, signal);
+      if (audioUrl) action.audioUrl = audioUrl;
     } catch (error) {
       failedCount++;
       lastError = error instanceof Error ? error.message : `TTS failed for action ${action.id}`;

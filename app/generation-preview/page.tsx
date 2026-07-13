@@ -952,6 +952,7 @@ function GenerationPreviewContent() {
                   ttsProviderConfig?.customDefaultBaseUrl ||
                   undefined,
                 ttsProviderOptions: providerOptions,
+                classroomId: stage.id,
               }),
               signal,
             });
@@ -974,6 +975,7 @@ function GenerationPreviewContent() {
               format: ttsData.format,
               createdAt: Date.now(),
             });
+            if (typeof ttsData.audioUrl === 'string') action.audioUrl = ttsData.audioUrl;
           } catch (err) {
             log.warn(`[TTS] Failed for ${audioId}:`, err);
             ttsFailCount++;

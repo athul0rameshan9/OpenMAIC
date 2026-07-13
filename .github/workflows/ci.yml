@@ -1,10 +1,9 @@
 name: CI
 
+# Deactivated: automatic triggers removed (was: push/pull_request on main).
+# Runs only when started manually from the Actions tab.
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main, feat/maic-editor-v0, feat/maic-editor-v1]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
