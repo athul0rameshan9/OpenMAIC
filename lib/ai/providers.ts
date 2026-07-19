@@ -1275,6 +1275,16 @@ export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
       },
     ],
   },
+
+  lmstudio: {
+    id: 'lmstudio',
+    name: 'LM Studio',
+    type: 'openai',
+    defaultBaseUrl: 'http://localhost:1234/v1',
+    requiresApiKey: false,
+    icon: 'https://models.dev/logos/lmstudio.svg',
+    models: [],
+  },
 };
 
 applyModelMetadata(PROVIDERS);
