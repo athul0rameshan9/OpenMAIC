@@ -64,10 +64,10 @@ const TYPE_THEME: Record<
     dot: 'bg-blue-400',
   },
   quiz: {
-    chip: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-300',
-    chipHover: 'hover:bg-purple-100/80 dark:hover:bg-purple-500/15',
-    accent: 'bg-purple-500',
-    dot: 'bg-purple-400',
+    chip: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300',
+    chipHover: 'hover:bg-blue-100/80 dark:hover:bg-blue-500/15',
+    accent: 'bg-blue-500',
+    dot: 'bg-blue-400',
   },
   interactive: {
     chip: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300',
@@ -1080,7 +1080,7 @@ function QuizConfigDisclosure({
                     'flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all',
                     'border',
                     selected
-                      ? 'border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-200'
+                      ? 'border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-200'
                       : 'border-border/40 bg-transparent text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground',
                     isOnlySelected && 'cursor-not-allowed opacity-90',
                   )}
@@ -1419,3 +1419,4 @@ function useAutoResize(ref: React.RefObject<HTMLTextAreaElement | null>, value: 
 function capitalize(input: string): string {
   return input.charAt(0).toUpperCase() + input.slice(1);
 }
+

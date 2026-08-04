@@ -152,6 +152,9 @@ export async function deleteStageData(stageId: string): Promise<void> {
  */
 export async function listStages(): Promise<StageListItem[]> {
   try {
+    if (!db.isOpen()) {
+      await db.open();
+    }
     const stages = await db.stages.orderBy('updatedAt').reverse().toArray();
 
     const stageList: StageListItem[] = await Promise.all(

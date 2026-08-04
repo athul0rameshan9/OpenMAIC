@@ -22,7 +22,7 @@ export function InsertButton({ item }: { readonly item: InsertPaletteItem }) {
       onClick={item.popoverContent ? undefined : item.onInvoke}
       className={`group flex h-9 items-center gap-1.5 rounded-xl px-3 transition-colors disabled:pointer-events-none disabled:opacity-40 ${
         item.active
-          ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
+          ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
           : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'
       }`}
     >
@@ -56,3 +56,4 @@ export function InsertButton({ item }: { readonly item: InsertPaletteItem }) {
     </Popover>
   );
 }
+

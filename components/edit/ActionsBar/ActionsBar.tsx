@@ -298,7 +298,7 @@ function SpeechTtsBar({
     none: { label: t('edit.tts.statusNone'), cls: 'text-muted-foreground/55' },
     generating: {
       label: t('edit.tts.statusGenerating'),
-      cls: 'text-violet-600 dark:text-violet-400',
+      cls: 'text-blue-600 dark:text-blue-400',
     },
     error: { label: t('edit.tts.statusError'), cls: 'text-rose-500' },
   };
@@ -408,7 +408,7 @@ function SpeechClip({
   const SpeechIcon = cueMeta('speech').icon;
 
   return (
-    <div className="group/clip relative flex h-full w-[228px] shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-white/70 shadow-sm transition-colors focus-within:border-violet-400 hover:border-violet-300/70 dark:border-gray-700/60 dark:bg-slate-800/50 dark:hover:border-violet-500/40">
+    <div className="group/clip relative flex h-full w-[228px] shrink-0 flex-col overflow-hidden rounded-xl border border-gray-200/80 bg-white/70 shadow-sm transition-colors focus-within:border-blue-400 hover:border-blue-300/70 dark:border-gray-700/60 dark:bg-slate-800/50 dark:hover:border-blue-500/40">
       <span className="absolute inset-x-0 top-0 h-[3px] bg-primary/30 transition-colors group-hover/clip:bg-primary/60" />
       <div className="flex items-center gap-1.5 border-b border-gray-100 bg-gray-50/70 px-2 py-1 dark:border-gray-700/50 dark:bg-slate-900/40">
         <span
@@ -517,7 +517,7 @@ function CueMarker({
       className={cn(
         'group/cue relative flex h-full w-[108px] shrink-0 flex-col overflow-hidden rounded-xl border bg-white/65 shadow-sm transition-colors dark:bg-slate-800/40',
         bound
-          ? 'cursor-pointer hover:border-violet-300/70 dark:hover:border-violet-500/40'
+          ? 'cursor-pointer hover:border-blue-300/70 dark:hover:border-blue-500/40'
           : 'cursor-grab active:cursor-grabbing',
         needsTarget
           ? 'border-dashed border-amber-400/70'
@@ -654,7 +654,7 @@ function DropZone({
       <span
         className={cn(
           'absolute inset-y-3 left-1/2 w-0.5 -translate-x-1/2 rounded-full transition-colors',
-          active ? 'bg-violet-500' : 'bg-transparent',
+          active ? 'bg-blue-500' : 'bg-transparent',
         )}
       />
     </div>
@@ -829,9 +829,9 @@ export function ActionsBar({ sceneId }: { sceneId: string }) {
           onPointerMove={onResizeMove}
           onPointerUp={onResizeEnd}
           onPointerCancel={onResizeEnd}
-          className="group absolute inset-x-0 top-0 z-10 h-1.5 cursor-row-resize touch-none transition-colors hover:bg-violet-400/30 active:bg-violet-500/50 dark:hover:bg-violet-500/30"
+          className="group absolute inset-x-0 top-0 z-10 h-1.5 cursor-row-resize touch-none transition-colors hover:bg-blue-400/30 active:bg-blue-500/50 dark:hover:bg-blue-500/30"
         >
-          <div className="absolute left-1/2 top-[3px] h-0.5 w-9 -translate-x-1/2 rounded-full bg-gray-300 transition-colors group-hover:bg-violet-400 dark:bg-gray-600 dark:group-hover:bg-violet-500" />
+          <div className="absolute left-1/2 top-[3px] h-0.5 w-9 -translate-x-1/2 rounded-full bg-gray-300 transition-colors group-hover:bg-blue-400 dark:bg-gray-600 dark:group-hover:bg-blue-500" />
         </div>
       )}
 
@@ -1066,3 +1066,5 @@ export function ActionsBar({ sceneId }: { sceneId: string }) {
     </section>
   );
 }
+
+

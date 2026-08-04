@@ -127,7 +127,7 @@ export function GenerationToolbar({
   const pillCls =
     'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-all cursor-pointer select-none whitespace-nowrap border';
   const pillMuted = `${pillCls} border-border/50 text-muted-foreground/70 hover:text-foreground hover:bg-muted/60`;
-  const pillActive = `${pillCls} border-violet-200/60 dark:border-violet-700/50 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300`;
+  const pillActive = `${pillCls} border-blue-200/60 dark:border-blue-700/50 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300`;
 
   return (
     <div className="flex items-center gap-1 flex-wrap">
@@ -178,7 +178,7 @@ export function GenerationToolbar({
                 <span className="max-w-[100px] truncate">{pdfFile.name}</span>
                 <span
                   role="button"
-                  className="size-4 rounded-full inline-flex items-center justify-center hover:bg-violet-200 dark:hover:bg-violet-800 transition-colors"
+                  className="size-4 rounded-full inline-flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     onPdfFileChange(null);
@@ -249,8 +249,8 @@ export function GenerationToolbar({
               {pdfFile ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
-                      <FileText className="size-4 text-violet-600 dark:text-violet-400" />
+                    <div className="size-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                      <FileText className="size-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{pdfFile.name}</p>
@@ -271,8 +271,8 @@ export function GenerationToolbar({
                   className={cn(
                     'flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 transition-colors cursor-pointer',
                     isDragging
-                      ? 'border-violet-400 bg-violet-50 dark:bg-violet-950/20'
-                      : 'border-muted-foreground/20 hover:border-violet-300',
+                      ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20'
+                      : 'border-muted-foreground/20 hover:border-blue-300',
                   )}
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(e) => {
@@ -323,7 +323,7 @@ export function GenerationToolbar({
                 className={cn(
                   'w-full flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-all',
                   webSearch
-                    ? 'bg-violet-50 dark:bg-violet-950/20 border-violet-200 dark:border-violet-800'
+                    ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
                     : 'border-border hover:bg-muted/50',
                   !selectedWebSearchAvailable && 'opacity-60',
                 )}
@@ -331,7 +331,7 @@ export function GenerationToolbar({
                 <Globe2
                   className={cn(
                     'size-4 shrink-0',
-                    webSearch ? 'text-violet-600 dark:text-violet-400' : 'text-muted-foreground',
+                    webSearch ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground',
                   )}
                 />
                 <div className="flex-1 min-w-0">
@@ -477,7 +477,7 @@ function InlineThinkingControl({
   };
 
   const selectTriggerCls =
-    'h-6 min-w-[84px] rounded-full border-0 bg-violet-100 px-2 py-0 !text-[10px] font-medium leading-none text-violet-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-violet-900/40 dark:text-violet-200 [&_svg]:size-3';
+    'h-6 min-w-[84px] rounded-full border-0 bg-blue-100 px-2 py-0 !text-[10px] font-medium leading-none text-blue-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-blue-900/40 dark:text-blue-200 [&_svg]:size-3';
   const selectItemCls = 'py-1 text-xs';
   const hasAutoBudget =
     (thinking.control === 'toggle-budget' || thinking.control === 'budget-only') &&
@@ -503,8 +503,8 @@ function InlineThinkingControl({
       onPointerDown={(event) => event.stopPropagation()}
       onKeyDown={(event) => event.stopPropagation()}
     >
-      <Brain className="size-3.5 shrink-0 text-violet-500" />
-      <div className="flex min-w-0 items-center gap-0.5 rounded-full border border-violet-200/70 bg-white/65 p-0.5 dark:border-violet-800/70 dark:bg-violet-950/25">
+      <Brain className="size-3.5 shrink-0 text-blue-500" />
+      <div className="flex min-w-0 items-center gap-0.5 rounded-full border border-blue-200/70 bg-white/65 p-0.5 dark:border-blue-800/70 dark:bg-blue-950/25">
         {hasAutoBudget && (
           <Select
             value={autoBudgetMode}
@@ -512,7 +512,7 @@ function InlineThinkingControl({
           >
             <SelectTrigger
               size="sm"
-              className="h-6 min-w-[76px] rounded-full border-0 bg-violet-100 px-2 py-0 !text-[10px] font-medium leading-none text-violet-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-violet-900/40 dark:text-violet-200 [&_svg]:size-3"
+              className="h-6 min-w-[76px] rounded-full border-0 bg-blue-100 px-2 py-0 !text-[10px] font-medium leading-none text-blue-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-blue-900/40 dark:text-blue-200 [&_svg]:size-3"
             >
               <SelectValue />
             </SelectTrigger>
@@ -541,7 +541,7 @@ function InlineThinkingControl({
           >
             <SelectTrigger
               size="sm"
-              className="h-6 min-w-[76px] rounded-full border-0 bg-violet-100 px-2 py-0 !text-[10px] font-medium leading-none text-violet-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-violet-900/40 dark:text-violet-200 [&_svg]:size-3"
+              className="h-6 min-w-[76px] rounded-full border-0 bg-blue-100 px-2 py-0 !text-[10px] font-medium leading-none text-blue-700 shadow-none focus-visible:ring-0 data-[size=sm]:h-6 dark:bg-blue-900/40 dark:text-blue-200 [&_svg]:size-3"
             >
               <SelectValue />
             </SelectTrigger>
@@ -608,8 +608,8 @@ function InlineThinkingControl({
         {(thinking.control === 'toggle-budget' || thinking.control === 'budget-only') &&
           thinking.budgetRange &&
           (!hasAutoBudget || autoBudgetMode === 'enabled') && (
-            <label className="ml-0.5 grid h-6 shrink-0 grid-cols-[auto_60px] items-stretch overflow-hidden rounded-full border border-violet-200/70 bg-background dark:border-violet-800/70">
-              <span className="grid h-[22px] shrink-0 place-items-center border-r border-violet-200/70 bg-muted/30 px-2 font-sans text-[11px] font-medium leading-[22px] text-muted-foreground dark:border-violet-800/70">
+            <label className="ml-0.5 grid h-6 shrink-0 grid-cols-[auto_60px] items-stretch overflow-hidden rounded-full border border-blue-200/70 bg-background dark:border-blue-800/70">
+              <span className="grid h-[22px] shrink-0 place-items-center border-r border-blue-200/70 bg-muted/30 px-2 font-sans text-[11px] font-medium leading-[22px] text-muted-foreground dark:border-blue-800/70">
                 {t('toolbar.thinkingBudget')}
               </span>
               <input
@@ -738,7 +738,7 @@ function ModelSettingsPopover({
               aria-label={`${currentProviderName} / ${currentModelLabel}`}
               className={cn(
                 'inline-flex h-8 min-w-0 items-center gap-1.5 rounded-full border px-2 text-xs font-medium transition-all',
-                'border-violet-200/70 bg-violet-50 text-violet-700 hover:bg-violet-100 dark:border-violet-800/70 dark:bg-violet-950/30 dark:text-violet-300',
+                'border-blue-200/70 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800/70 dark:bg-blue-950/30 dark:text-blue-300',
                 currentModelId &&
                   'shadow-[0_0_0_1px_rgba(124,58,237,0.12)] dark:shadow-[0_0_0_1px_rgba(167,139,250,0.16)]',
               )}
@@ -753,7 +753,7 @@ function ModelSettingsPopover({
                 <Bot className="size-3.5 shrink-0" />
               )}
               {currentThinkingLabel && (
-                <span className="shrink-0 rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-violet-700 ring-1 ring-violet-200/70 dark:bg-violet-950/50 dark:text-violet-200 dark:ring-violet-800/70">
+                <span className="shrink-0 rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-blue-700 ring-1 ring-blue-200/70 dark:bg-blue-950/50 dark:text-blue-200 dark:ring-blue-800/70">
                   {currentThinkingLabel}
                 </span>
               )}
@@ -813,7 +813,7 @@ function ModelSettingsPopover({
                           {provider.models.length}
                         </div>
                       </div>
-                      {isCurrent && <span className="size-1.5 rounded-full bg-violet-500" />}
+                      {isCurrent && <span className="size-1.5 rounded-full bg-blue-500" />}
                     </button>
                   );
                 })
@@ -867,7 +867,7 @@ function ModelSettingsPopover({
                       className={cn(
                         'mb-1 flex min-h-11 w-full items-center gap-2 rounded-md px-2.5 py-2 text-left transition-colors',
                         isSelected
-                          ? 'bg-violet-50 text-violet-700 ring-1 ring-violet-200 dark:bg-violet-950/25 dark:text-violet-300 dark:ring-violet-800'
+                          ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/25 dark:text-blue-300 dark:ring-blue-800'
                           : 'hover:bg-muted/60',
                       )}
                     >
@@ -888,7 +888,7 @@ function ModelSettingsPopover({
                         />
                       )}
                       {isSelected && (
-                        <Check className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" />
+                        <Check className="size-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
                       )}
                     </div>
                   );
@@ -901,3 +901,4 @@ function ModelSettingsPopover({
     </Popover>
   );
 }
+

@@ -87,7 +87,7 @@ function EmptyState() {
   const { t } = useI18n();
   return (
     <div className="mt-20 flex flex-col items-center gap-3 text-center" data-testid="quiz-empty">
-      <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 text-violet-500 shadow-[0_8px_24px_-12px_rgba(114,46,209,0.5)] dark:from-violet-500/20 dark:to-violet-500/5 dark:text-violet-300">
+      <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 text-blue-500 shadow-[0_8px_24px_-12px_rgba(30,58,95,0.5)] dark:from-blue-500/20 dark:to-blue-500/5 dark:text-blue-300">
         <ListChecks className="h-7 w-7" strokeWidth={1.75} />
       </div>
       <p className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">
@@ -99,3 +99,4 @@ function EmptyState() {
     </div>
   );
 }
+

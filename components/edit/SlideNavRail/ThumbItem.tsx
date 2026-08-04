@@ -113,7 +113,7 @@ function ThumbItemComponent({
         }}
         // Matches playback `SceneSidebar` tile family — index badge +
         // title header row above an aspect-video thumbnail card, whole
-        // tile flipped to violet-50 + ring when active. Differences from
+        // tile flipped to blue-50 + ring when active. Differences from
         // playback: inline title edit via the more-actions menu, and a
         // hover-revealed three-dot menu (the only editor affordance
         // overlaid on the playback shape).
@@ -121,7 +121,7 @@ function ThumbItemComponent({
           'group/thumb relative flex cursor-pointer select-none flex-col gap-1 rounded-lg p-1.5',
           'outline-none transition-colors duration-150',
           active
-            ? 'bg-violet-50 ring-1 ring-violet-200 dark:bg-violet-900/20 dark:ring-violet-700'
+            ? 'bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:ring-blue-700'
             : 'hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50',
         )}
       >
@@ -133,7 +133,7 @@ function ThumbItemComponent({
               className={cn(
                 'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black leading-none tabular-nums',
                 active
-                  ? 'bg-violet-600 text-white shadow-sm shadow-violet-500/30 dark:bg-violet-500'
+                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30 dark:bg-blue-500'
                   : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400',
               )}
             >
@@ -161,8 +161,8 @@ function ThumbItemComponent({
                 aria-label={t('edit.nav.rename')}
                 className={cn(
                   'min-w-0 flex-1 truncate rounded-sm bg-white px-1 py-0 text-xs font-bold outline-none',
-                  'ring-1 ring-violet-400 focus:ring-violet-500',
-                  'text-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-violet-500',
+                  'ring-1 ring-blue-400 focus:ring-blue-500',
+                  'text-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-blue-500',
                 )}
               />
             ) : (
@@ -174,7 +174,7 @@ function ThumbItemComponent({
                 className={cn(
                   'truncate text-xs font-bold transition-colors',
                   active
-                    ? 'text-violet-700 dark:text-violet-300'
+                    ? 'text-blue-700 dark:text-blue-300'
                     : 'text-zinc-600 group-hover/thumb:text-zinc-900 dark:text-zinc-300 dark:group-hover/thumb:text-zinc-100',
                 )}
                 title={scene.title}
@@ -285,3 +285,4 @@ function useNearViewport(ref: React.RefObject<Element | null>) {
   }, [ref]);
   return visible;
 }
+

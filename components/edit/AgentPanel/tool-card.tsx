@@ -42,8 +42,8 @@ export function ScenePill({ sceneId }: { sceneId?: string }) {
   );
   if (!title) return null;
   return (
-    <span className="inline-flex min-w-0 max-w-[150px] shrink items-center gap-0.5 rounded-md border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10.5px] font-medium text-[#5b1fa8] dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300">
-      <AtSign className="size-2.5 shrink-0 text-violet-500" />
+    <span className="inline-flex min-w-0 max-w-[150px] shrink items-center gap-0.5 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[10.5px] font-medium text-[#1e3a5f] dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300">
+      <AtSign className="size-2.5 shrink-0 text-blue-500" />
       <span className="truncate">{title}</span>
     </span>
   );
@@ -57,7 +57,7 @@ const STATUS_ICON: Record<ToolStatus, LucideIcon> = {
 };
 
 const STATUS_TONE: Record<ToolStatus, string> = {
-  running: 'text-[#5b1fa8] dark:text-violet-300',
+  running: 'text-[#1e3a5f] dark:text-blue-300',
   done: 'text-emerald-600 dark:text-emerald-400',
   failed: 'text-amber-600 dark:text-amber-400',
   // Stopped: a deliberately loud rose stop sign so an interrupted run reads as
@@ -93,7 +93,7 @@ export function ToolCard({
     <div
       className={cn(
         'overflow-hidden rounded-[9px] border',
-        running ? 'border-violet-300 dark:border-violet-500/40' : 'border-border',
+        running ? 'border-blue-300 dark:border-blue-500/40' : 'border-border',
       )}
     >
       <div className="flex w-full items-center gap-2 bg-muted/50 px-2.5 py-2 text-left">
@@ -116,3 +116,5 @@ export function ToolCard({
     </div>
   );
 }
+
+

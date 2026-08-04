@@ -50,7 +50,7 @@ export function FloatingInsertToolbar({ items }: Props) {
               'bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md',
               'ring-1 ring-zinc-200/80 dark:ring-zinc-700/80 border-t-0',
               'shadow-sm text-zinc-500 dark:text-zinc-400',
-              'hover:text-violet-600 dark:hover:text-violet-300',
+              'hover:text-blue-600 dark:hover:text-blue-300',
               'transition-colors',
             )}
           >
@@ -94,3 +94,4 @@ export function FloatingInsertToolbar({ items }: Props) {
     </div>
   );
 }
+

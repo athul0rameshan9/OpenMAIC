@@ -362,9 +362,9 @@ export function SlideNavRail() {
           onPointerMove={handleResizeMove}
           onPointerUp={handleResizeEnd}
           onPointerCancel={handleResizeEnd}
-          className="group absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize touch-none hover:bg-violet-400/30 dark:hover:bg-violet-500/30 active:bg-violet-500/50 transition-colors"
+          className="group absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize touch-none hover:bg-blue-400/30 dark:hover:bg-blue-500/30 active:bg-blue-500/50 transition-colors"
         >
-          <div className="absolute right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-8 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-violet-400 dark:group-hover:bg-violet-500 transition-colors" />
+          <div className="absolute right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-8 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-blue-400 dark:group-hover:bg-blue-500 transition-colors" />
         </div>
       )}
       {/* Header band — mirrors playback `SceneSidebar`: OpenMAIC logo
@@ -500,7 +500,7 @@ function CollapsedList({ scenes, currentSceneId, onActivate }: CollapsedListProp
                 'group/cl flex h-7 w-full items-center justify-center rounded-md',
                 'font-mono text-[10px] leading-none tabular-nums tracking-wide transition-colors',
                 active
-                  ? 'bg-violet-500 text-white shadow-sm shadow-violet-500/40'
+                  ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/40'
                   : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-800 dark:hover:text-zinc-200',
                 !isSlide && !active && 'text-zinc-400/80 dark:text-zinc-500/80',
               )}
@@ -513,3 +513,4 @@ function CollapsedList({ scenes, currentSceneId, onActivate }: CollapsedListProp
     </ol>
   );
 }
+

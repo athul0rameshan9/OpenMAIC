@@ -44,9 +44,9 @@ export function InsertionZone({ label, onInsert }: InsertionZoneProps) {
           'inline-flex h-5 w-5 items-center justify-center rounded-full',
           // Solid background + ring + shadow gives it real visual
           // elevation against the neighbouring violet ring zones.
-          'bg-white text-violet-600 ring-1 ring-violet-200',
-          'dark:bg-zinc-900 dark:text-violet-300 dark:ring-violet-400/40',
-          'shadow-md shadow-violet-500/15 dark:shadow-violet-500/20',
+          'bg-white text-blue-600 ring-1 ring-blue-200',
+          'dark:bg-zinc-900 dark:text-blue-300 dark:ring-blue-400/40',
+          'shadow-md shadow-blue-500/15 dark:shadow-blue-500/20',
           // Popup motion: start tiny + transparent, end full size with a
           // small overshoot. The custom cubic-bezier is a classic
           // "back-ease-out" giving it a quick, springy reveal.
@@ -62,3 +62,4 @@ export function InsertionZone({ label, onInsert }: InsertionZoneProps) {
     </div>
   );
 }
+

@@ -237,7 +237,7 @@ export function ElementPickLayer() {
       {outlines.map((o) => (
         <div
           key={o.id}
-          className="pointer-events-none absolute rounded-[3px] ring-1 ring-violet-400/40 bg-violet-400/[0.04]"
+          className="pointer-events-none absolute rounded-[3px] ring-1 ring-blue-400/40 bg-blue-400/[0.04]"
           style={{ left: o.box.left, top: o.box.top, width: o.box.width, height: o.box.height }}
         />
       ))}
@@ -245,7 +245,7 @@ export function ElementPickLayer() {
       {/* hovered element — solid ring */}
       {hover && hover.box.width > 0 && (
         <div
-          className="pointer-events-none absolute rounded-md ring-2 ring-violet-500 bg-violet-500/[0.06]"
+          className="pointer-events-none absolute rounded-md ring-2 ring-blue-500 bg-blue-500/[0.06]"
           style={{
             left: hover.box.left - 2,
             top: hover.box.top - 2,
@@ -256,8 +256,8 @@ export function ElementPickLayer() {
       )}
 
       {/* instruction banner */}
-      <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full border border-violet-300/60 bg-popover/95 px-3.5 py-1.5 text-[12px] font-medium text-foreground shadow-lg shadow-black/10 backdrop-blur">
-        <span className="text-violet-600 dark:text-violet-400">
+      <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full border border-blue-300/60 bg-popover/95 px-3.5 py-1.5 text-[12px] font-medium text-foreground shadow-lg shadow-black/10 backdrop-blur">
+        <span className="text-blue-600 dark:text-blue-400">
           {t('edit.pick.pickFor', { label: typeLabel })}
         </span>{' '}
         · {t('edit.pick.pickHint')}
@@ -311,7 +311,7 @@ export function ElementPickLayer() {
                   onClick={() => bind(el.id)}
                   className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] transition-colors hover:bg-muted ${
                     el.id === currentBound
-                      ? 'bg-violet-50 ring-1 ring-violet-200 dark:bg-violet-500/10 dark:ring-violet-500/30'
+                      ? 'bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-500/30'
                       : ''
                   }`}
                 >
@@ -336,3 +336,5 @@ export function ElementPickLayer() {
     </div>
   );
 }
+
+

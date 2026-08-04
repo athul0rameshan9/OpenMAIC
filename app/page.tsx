@@ -617,7 +617,7 @@ function HomePage() {
             <button
               onClick={() => setActiveTab('textbook')}
               style={{
-                background: activeTab === 'textbook' ? '#722ed1' : 'transparent',
+                background: activeTab === 'textbook' ? '#1e3a5f' : 'transparent',
                 color: activeTab === 'textbook' ? '#fff' : '#6b7280',
                 borderRadius: '6px',
                 border: 'none',
@@ -633,7 +633,7 @@ function HomePage() {
             <button
               onClick={() => setActiveTab('free')}
               style={{
-                background: activeTab === 'free' ? '#722ed1' : 'transparent',
+                background: activeTab === 'free' ? '#1e3a5f' : 'transparent',
                 color: activeTab === 'free' ? '#fff' : '#6b7280',
                 borderRadius: '6px',
                 border: 'none',
@@ -672,7 +672,7 @@ function HomePage() {
                       style={{ borderRadius: '10px', padding: '10px', cursor: 'pointer', border: '1px solid transparent', marginBottom: '4px', transition: 'background 0.15s, border-color 0.15s' }}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center justify-center shrink-0" style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg,#8b47ea,#3b82f6)' }}>
+                        <div className="flex items-center justify-center shrink-0" style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg,#1e3a5f,#3b82f6)' }}>
                           <span style={{ fontSize: '13px' }}>📄</span>
                         </div>
                         <div style={{ minWidth: 0 }}>
@@ -709,7 +709,7 @@ function HomePage() {
         {/* ── Right Content ── */}
         <main className="flex-1 flex flex-col" style={{ background: '#fafafa', overflow: 'hidden', position: 'relative' }}>
           {/* Decorative radial gradient */}
-          <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle at 100% 0%, rgba(114,46,209,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle at 100% 0%, rgba(30,58,95,0.04) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
           {/* Right header */}
           <div className="shrink-0" style={{ padding: '14px 24px 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', position: 'relative', zIndex: 1 }}>
@@ -718,7 +718,7 @@ function HomePage() {
                 <div className="flex items-center gap-1" style={{ fontSize: '11px', color: '#6b7280' }}>
                   <span>{selectedTextbook.title}</span>
                   <span style={{ fontSize: '10px', opacity: 0.5, margin: '0 1px' }}>/</span>
-                  <span style={{ color: '#722ed1', fontWeight: 500 }}>Ask</span>
+                  <span style={{ color: '#1e3a5f', fontWeight: 500 }}>Ask</span>
                 </div>
                 <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#1a1a2e', margin: '3px 0 0', letterSpacing: '-0.2px' }}>{selectedTextbook.title}</h1>
               </>
@@ -727,7 +727,7 @@ function HomePage() {
                 <div className="flex items-center gap-1" style={{ fontSize: '11px', color: '#6b7280' }}>
                   <span>Katalyst</span>
                   <span style={{ fontSize: '10px', opacity: 0.5, margin: '0 1px' }}>/</span>
-                  <span style={{ color: '#722ed1', fontWeight: 500 }}>{activeTab === 'textbook' ? 'Textbook' : 'Free Prompt'}</span>
+                  <span style={{ color: '#1e3a5f', fontWeight: 500 }}>{activeTab === 'textbook' ? 'Textbook' : 'Free Prompt'}</span>
                 </div>
                 <h1 style={{ fontSize: '18px', fontWeight: 600, color: '#1a1a2e', margin: '3px 0 0', letterSpacing: '-0.2px' }}>
                   {activeTab === 'textbook' ? 'Select a textbook to get started' : 'Create a new classroom'}
@@ -746,9 +746,9 @@ function HomePage() {
                   <button
                     onClick={() => updateForm('interactiveMode', false)}
                     style={{
-                      background: !form.interactiveMode ? 'rgba(114,46,209,0.1)' : '#fff',
-                      color: !form.interactiveMode ? '#722ed1' : '#6b7280',
-                      border: !form.interactiveMode ? '1px solid rgba(114,46,209,0.3)' : '1px solid #e5e7eb',
+                      background: !form.interactiveMode ? 'rgba(30,58,95,0.1)' : '#fff',
+                      color: !form.interactiveMode ? '#1e3a5f' : '#6b7280',
+                      border: !form.interactiveMode ? '1px solid rgba(30,58,95,0.3)' : '1px solid #e5e7eb',
                       borderRadius: '6px',
                       fontSize: '12px',
                       fontWeight: 500,
@@ -765,9 +765,9 @@ function HomePage() {
                   <button
                     onClick={() => updateForm('interactiveMode', true)}
                     style={{
-                      background: form.interactiveMode ? 'rgba(114,46,209,0.1)' : '#fff',
-                      color: form.interactiveMode ? '#722ed1' : '#6b7280',
-                      border: form.interactiveMode ? '1px solid rgba(114,46,209,0.3)' : '1px solid #e5e7eb',
+                      background: form.interactiveMode ? 'rgba(30,58,95,0.1)' : '#fff',
+                      color: form.interactiveMode ? '#1e3a5f' : '#6b7280',
+                      border: form.interactiveMode ? '1px solid rgba(30,58,95,0.3)' : '1px solid #e5e7eb',
                       borderRadius: '6px',
                       fontSize: '12px',
                       fontWeight: 500,
@@ -785,9 +785,9 @@ function HomePage() {
                     <button
                       onClick={() => updateForm('vocationalTestMode', !form.vocationalTestMode)}
                       style={{
-                        background: form.vocationalTestMode ? 'rgba(114,46,209,0.1)' : '#fff',
-                        color: form.vocationalTestMode ? '#722ed1' : '#6b7280',
-                        border: form.vocationalTestMode ? '1px solid rgba(114,46,209,0.3)' : '1px solid #e5e7eb',
+                        background: form.vocationalTestMode ? 'rgba(30,58,95,0.1)' : '#fff',
+                        color: form.vocationalTestMode ? '#1e3a5f' : '#6b7280',
+                        border: form.vocationalTestMode ? '1px solid rgba(30,58,95,0.3)' : '1px solid #e5e7eb',
                         borderRadius: '6px',
                         fontSize: '12px',
                         fontWeight: 500,
@@ -810,8 +810,8 @@ function HomePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Selected textbook pill */}
                   {selectedTextbook && (
-                    <div className="flex items-center gap-2" style={{ borderRadius: '8px', border: '1px solid rgba(114,46,209,0.3)', background: 'rgba(114,46,209,0.05)', padding: '8px 12px' }}>
-                      <BookOpen className="h-4 w-4 shrink-0" style={{ color: '#722ed1' }} />
+                    <div className="flex items-center gap-2" style={{ borderRadius: '8px', border: '1px solid rgba(30,58,95,0.3)', background: 'rgba(30,58,95,0.05)', padding: '8px 12px' }}>
+                      <BookOpen className="h-4 w-4 shrink-0" style={{ color: '#1e3a5f' }} />
                       <span style={{ fontSize: '12px', fontWeight: 500 }} className="truncate">{selectedTextbook.title}</span>
                       <button
                         onClick={() => { setSelectedTextbook(null); }}
@@ -844,7 +844,7 @@ function HomePage() {
                           className="v1-enter-btn flex items-center"
                           style={{
                             gap: '6px',
-                            background: canGenerateFromTextbook ? '#722ed1' : '#e5e7eb',
+                            background: canGenerateFromTextbook ? '#1e3a5f' : '#e5e7eb',
                             color: canGenerateFromTextbook ? '#fff' : '#9ca3af',
                             border: 'none',
                             borderRadius: '9px',
@@ -855,7 +855,7 @@ function HomePage() {
                             fontFamily: "'Plus Jakarta Sans', sans-serif",
                             cursor: canGenerateFromTextbook ? 'pointer' : 'not-allowed',
                             transition: 'background 0.15s',
-                            boxShadow: canGenerateFromTextbook ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
+                            boxShadow: canGenerateFromTextbook ? '0 4px 14px rgba(30,58,95,0.28)' : 'none',
                           }}
                         >
                           <ArrowUp className="size-3.5" /> Generate
@@ -918,7 +918,7 @@ function HomePage() {
                           className="v1-enter-btn flex items-center"
                           style={{
                             gap: '6px',
-                            background: canGenerate ? '#722ed1' : '#e5e7eb',
+                            background: canGenerate ? '#1e3a5f' : '#e5e7eb',
                             color: canGenerate ? '#fff' : '#9ca3af',
                             border: 'none',
                             borderRadius: '9px',
@@ -930,7 +930,7 @@ function HomePage() {
                             cursor: canGenerate ? 'pointer' : 'not-allowed',
                             letterSpacing: '0.01em',
                             transition: 'background 0.15s',
-                            boxShadow: canGenerate ? '0 4px 14px rgba(114,46,209,0.28)' : 'none',
+                            boxShadow: canGenerate ? '0 4px 14px rgba(30,58,95,0.28)' : 'none',
                           }}
                         >
                           <IconDoorEnter size={14} /> {t('toolbar.enterClassroom')}
@@ -981,7 +981,7 @@ function HomePage() {
                     <div className="flex-1" style={{ height: '1px', background: '#e5e7eb' }} />
                     <span
                       onClick={triggerFileSelect}
-                      style={{ fontSize: '11px', color: '#722ed1', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}
+                      style={{ fontSize: '11px', color: '#1e3a5f', cursor: 'pointer', fontWeight: 600, letterSpacing: '0.01em' }}
                     >
                       Import ↗
                     </span>
@@ -1202,7 +1202,7 @@ function GreetingBar() {
                     setAvatarPickerOpen(!avatarPickerOpen);
                   }}
                 >
-                  <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-violet-300/70 dark:ring-violet-500/40 transition-all duration-300">
+                  <div className="size-8 rounded-full overflow-hidden ring-[1.5px] ring-blue-300/70 dark:ring-blue-500/40 transition-all duration-300">
                     <img src={avatar} alt="" className="size-full object-cover" />
                   </div>
                   <motion.div
@@ -1240,7 +1240,7 @@ function GreetingBar() {
                       />
                       <button
                         onClick={commitName}
-                        className="shrink-0 size-5 rounded flex items-center justify-center text-violet-500 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                        className="shrink-0 size-5 rounded flex items-center justify-center text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30"
                       >
                         <Check className="size-3" />
                       </button>
@@ -1292,7 +1292,7 @@ function GreetingBar() {
                               'size-7 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-800 cursor-pointer transition-all duration-150',
                               'hover:scale-110 active:scale-95',
                               avatar === url
-                                ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0'
+                                ? 'ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-0'
                                 : 'hover:ring-1 hover:ring-muted-foreground/30',
                             )}
                           >
@@ -1304,7 +1304,7 @@ function GreetingBar() {
                             'size-7 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 border border-dashed',
                             'hover:scale-110 active:scale-95',
                             isCustomAvatar(avatar)
-                              ? 'ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-0 border-violet-300 dark:border-violet-600 bg-violet-50 dark:bg-violet-900/30'
+                              ? 'ring-2 ring-blue-400 dark:ring-blue-500 ring-offset-0 border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30'
                               : 'border-muted-foreground/30 text-muted-foreground/50 hover:border-muted-foreground/50',
                           )}
                           onClick={() => avatarInputRef.current?.click()}
@@ -1403,7 +1403,7 @@ function ClassroomCard({
       {/* Thumbnail — gradient with decorative elements */}
       <div
         ref={thumbRef}
-        style={{ aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg,#8b47ea 0%,#5b8af7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ aspectRatio: '16/9', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: 'linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
         {slide && thumbWidth > 0 ? (
           <SlideThumbnail
@@ -1426,7 +1426,7 @@ function ClassroomCard({
         {/* Hover overlay with play button */}
         <div className="v1-card-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s', borderRadius: '12px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <IconPlayerPlayFilled size={16} style={{ color: '#722ed1' }} />
+            <IconPlayerPlayFilled size={16} style={{ color: '#1e3a5f' }} />
           </div>
         </div>
 
@@ -1514,7 +1514,7 @@ function ClassroomCard({
 
       {/* Info — outside the thumbnail */}
       <div className="flex items-center" style={{ marginTop: '8px', gap: '6px' }}>
-        <span style={{ background: '#f0ebff', color: '#722ed1', fontSize: '11px', padding: '2px 9px', borderRadius: '20px', fontWeight: 500 }}>
+        <span style={{ background: '#f0ebff', color: '#1e3a5f', fontSize: '11px', padding: '2px 9px', borderRadius: '20px', fontWeight: 500 }}>
           {classroom.sceneCount} {t('classroom.slides')}
         </span>
         <span style={{ fontSize: '11px', color: '#9ca3af' }}>{formatDate(classroom.updatedAt)}</span>
@@ -1532,7 +1532,7 @@ function ClassroomCard({
             onBlur={commitRename}
             maxLength={100}
             placeholder={t('classroom.renamePlaceholder')}
-            style={{ width: '100%', background: 'transparent', borderBottom: '1px solid rgba(114,46,209,0.4)', fontSize: '14px', fontWeight: 600, color: '#1a1a2e', outline: 'none', border: 'none', borderBottomWidth: '1px', borderBottomStyle: 'solid', borderBottomColor: 'rgba(114,46,209,0.4)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ width: '100%', background: 'transparent', borderBottom: '1px solid rgba(30,58,95,0.4)', fontSize: '14px', fontWeight: 600, color: '#1a1a2e', outline: 'none', border: 'none', borderBottomWidth: '1px', borderBottomStyle: 'solid', borderBottomColor: 'rgba(30,58,95,0.4)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           />
         </div>
       ) : (
@@ -1573,3 +1573,4 @@ function ClassroomCard({
 export default function Page() {
   return <HomePage />;
 }
+

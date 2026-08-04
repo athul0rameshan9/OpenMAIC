@@ -146,7 +146,7 @@ export function HeaderControls({
               className={cn(
                 'cursor-pointer gap-2',
                 theme === 'light' &&
-                  'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                  'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
               )}
             >
               <Sun className="w-4 h-4" />
@@ -157,7 +157,7 @@ export function HeaderControls({
               className={cn(
                 'cursor-pointer gap-2',
                 theme === 'dark' &&
-                  'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                  'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
               )}
             >
               <Moon className="w-4 h-4" />
@@ -168,7 +168,7 @@ export function HeaderControls({
               className={cn(
                 'cursor-pointer gap-2',
                 theme === 'system' &&
-                  'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+                  'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
               )}
             >
               <Monitor className="w-4 h-4" />
@@ -215,11 +215,11 @@ export function HeaderControls({
             'bg-white/60 dark:bg-gray-800/60 backdrop-blur-md',
             compact ? 'h-8 px-2.5' : 'h-9 px-3',
             mode === 'edit'
-              ? 'border-violet-500/60 dark:border-violet-400/60'
+              ? 'border-blue-500/60 dark:border-blue-400/60'
               : 'border-gray-100/50 dark:border-gray-700/50',
             !canEdit && mode !== 'edit'
               ? 'opacity-60 cursor-not-allowed'
-              : 'cursor-pointer hover:border-violet-400/60 dark:hover:border-violet-500/50',
+              : 'cursor-pointer hover:border-blue-400/60 dark:hover:border-blue-500/50',
           )}
           // When disabled (e.g. the course-complete placeholder), explain why
           // on hover and point the user to a real scene instead of a bare
@@ -236,7 +236,7 @@ export function HeaderControls({
             className={cn(
               'text-[11px] font-bold uppercase tracking-[0.14em] tabular-nums select-none transition-colors duration-200',
               mode === 'edit'
-                ? 'text-violet-600 dark:text-violet-300'
+                ? 'text-blue-600 dark:text-blue-300'
                 : 'text-gray-500 dark:text-gray-400',
             )}
           >
@@ -247,7 +247,7 @@ export function HeaderControls({
             onCheckedChange={onToggleEditMode}
             disabled={!canEdit && mode !== 'edit'}
             aria-label={mode === 'edit' ? t('stage.doneEditing') : t('stage.editCourse')}
-            className="data-[state=checked]:bg-violet-600 dark:data-[state=checked]:bg-violet-500"
+            className="data-[state=checked]:bg-blue-600 dark:data-[state=checked]:bg-blue-500"
           />
         </label>
       )}
@@ -336,3 +336,4 @@ export function HeaderControls({
     </div>
   );
 }
+
