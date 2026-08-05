@@ -21,6 +21,7 @@ import { useMediaGenerationStore } from '@/lib/store/media-generation';
 import { useExportPPTX } from '@/lib/export/use-export-pptx';
 import { useExportClassroom } from '@/lib/export/use-export-classroom';
 import { useStudentAssistantStore } from '@/lib/store/student-assistant';
+import { StreakPill } from '@/components/study-streak';
 import { SettingsDialog } from '../settings';
 import {
   DropdownMenu,
@@ -114,6 +115,9 @@ export function HeaderControls({
   // anchors identically too.
   return (
     <div className="flex items-center gap-4">
+      {/* Study streak — hidden until the student has earned something, so it
+          never shows up as an empty zero in the chrome. */}
+      <StreakPill className="shrink-0 backdrop-blur-md" />
       <div
         className={cn(
           'shrink-0 flex items-center gap-1 backdrop-blur-md shadow-sm rounded-full',

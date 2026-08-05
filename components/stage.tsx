@@ -14,6 +14,7 @@ import { useEditModeLock } from '@/components/edit/use-edit-mode-lock';
 import { MultiTabEditConflictPrompt } from '@/components/edit/MultiTabEditConflictPrompt';
 import { InteractiveIframeHost } from '@/components/scene-renderers/InteractiveIframeHost';
 import { StudentAssistantPanel } from '@/components/student-assistant/student-assistant-panel';
+import { StudyActivityTracker } from '@/components/study-streak/study-activity-tracker';
 import { CHROME_EASE } from '@/lib/edit/transitions';
 import { preloadEditor } from '@/lib/edit/preload-editor';
 
@@ -165,6 +166,8 @@ export function Stage({
       <InteractiveIframeHost />
       {/* Student AI Assistant sidebar */}
       <StudentAssistantPanel />
+      {/* Credits study-streak XP as the student moves through the classroom */}
+      <StudyActivityTracker />
     </div>
   );
 }

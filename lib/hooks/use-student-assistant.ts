@@ -6,6 +6,7 @@ import { DefaultChatTransport } from 'ai';
 import { useStudentAssistantStore } from '@/lib/store/student-assistant';
 import { useSettingsStore } from '@/lib/store/settings';
 import { useStageStore } from '@/lib/store/stage';
+import { useRecordStudy } from '@/lib/hooks/use-study-streak';
 import { extractSlideContent } from '@/lib/student-assistant/extract-slide-content';
 
 /**
@@ -29,6 +30,7 @@ export function useStudentAssistant() {
 
   const [error, setError] = useState<Error | null>(null);
   const clearError = useCallback(() => setError(null), []);
+  const recordStudy = useRecordStudy();
 
   const providerId = useSettingsStore((s) => s.providerId);
   const modelId = useSettingsStore((s) => s.modelId);
@@ -89,6 +91,9 @@ export function useStudentAssistant() {
         const text = getMessageText(message.parts as Array<{ type: string; text?: string }>);
         addMessage(sid, { role: 'assistant', content: text });
       }
+      // Asking counts toward the study streak, but only once the assistant
+      // actually answered — a failed request isn't studying.
+      recordStudy('question', 1, { courseId: activeCourseId });
       setStreaming(false);
     },
   });

@@ -76,6 +76,7 @@ import { useImportClassroom } from '@/lib/import/use-import-classroom';
 import { shouldShowVocationalTestUi } from '@/lib/config/feature-flags';
 import { useImportPptx } from '@/lib/import/use-import-pptx';
 import { TextbookBrowser } from '@/components/textbook-browser';
+import { StreakCard } from '@/components/study-streak';
 import { HomeAgentChat } from '@/components/home-agent/home-agent-chat';
 import { CalendarSidebar } from '@/components/home-agent/calendar-sidebar';
 
@@ -662,6 +663,9 @@ function HomePage() {
           <div className="flex-1" style={{ overflowY: 'auto', padding: '12px' }}>
             {activeTab === 'textbook' ? (
               <div>
+                {/* Study streak — first thing a student sees when they come
+                    back, and the reason they came back. */}
+                <StreakCard className="mb-3" />
                 <div style={{ fontSize: '10px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.09em', padding: '0 4px', marginBottom: '8px' }}>Your textbooks</div>
                 <TextbookBrowser
                   selectedTextbook={selectedTextbook}

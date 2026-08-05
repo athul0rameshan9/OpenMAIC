@@ -21,6 +21,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('QuizView');
 import type { QuizQuestion } from '@/lib/types/stage';
 import { useDraftCache } from '@/lib/hooks/use-draft-cache';
+import { useRecordStudy } from '@/lib/hooks/use-study-streak';
 import { SpeechButton } from '@/components/audio/speech-button';
 import { gradeChoiceQuestions, isShortAnswer, type QuestionResult } from '@/lib/quiz/grading';
 import {
@@ -688,6 +689,8 @@ export function QuizView({ questions, sceneId }: QuizViewProps) {
     }
   }
 
+  const recordStudy = useRecordStudy();
+
   const totalPoints = useMemo(
     () => questions.reduce((sum, q) => sum + (q.points ?? 1), 0),
     [questions],
@@ -748,12 +751,20 @@ export function QuizView({ questions, sceneId }: QuizViewProps) {
       setResults(ordered);
       setPhase('reviewing');
       writeSubmittedResults(sceneId, ordered);
+
+      // Streak credit. Keyed by scene so a retry re-grades without re-earning
+      // XP; the correct-answer bonus rides on the same key.
+      recordStudy('quiz', 1, { dedupeKey: `quiz:${sceneId}` });
+      const correct = ordered.filter((r) => r.correct === true).length;
+      if (correct > 0) {
+        recordStudy('correct_answer', correct, { dedupeKey: `quiz-correct:${sceneId}` });
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [phase, questions, answers, locale, sceneId]);
+  }, [phase, questions, answers, locale, sceneId, recordStudy]);
 
   const handleRetry = useCallback(() => {
     setPhase('not_started');

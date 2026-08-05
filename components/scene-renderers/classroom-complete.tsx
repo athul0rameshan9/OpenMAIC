@@ -9,6 +9,9 @@ import { useStageStore } from '@/lib/store';
 import type { Scene, SceneType } from '@/lib/types/stage';
 import { summarizeScenes } from '@/lib/classroom/complete-summary';
 import { readAnswersForSummary } from '@/lib/quiz/persistence';
+import { useRecordStudy } from '@/lib/hooks/use-study-streak';
+import { dayKey } from '@/lib/study-streak/engine';
+import { StreakCard } from '@/components/study-streak';
 
 const SCENE_TYPE_ICONS: Record<SceneType, typeof FileText> = {
   slide: FileText,
@@ -303,11 +306,21 @@ function QuizRing({ pct, delay = 0 }: { pct: number; delay?: number }) {
 interface ClassroomCompletePageProps {
   readonly scenes: Scene[];
   readonly title: string;
+  /** Stable id used to credit the streak once per classroom per day. */
+  readonly lessonId?: string;
 }
 
-export function ClassroomCompletePage({ scenes, title }: ClassroomCompletePageProps) {
+export function ClassroomCompletePage({ scenes, title, lessonId }: ClassroomCompletePageProps) {
   const { t, locale } = useI18n();
   const prefersReducedMotion = useReducedMotion();
+  const recordStudy = useRecordStudy();
+
+  // Finishing a classroom is the single biggest XP award. Keyed per day so a
+  // student who works through the same classroom again tomorrow is credited
+  // again, but reopening the summary screen today isn't.
+  useEffect(() => {
+    recordStudy('lesson', 1, { dedupeKey: `lesson:${lessonId ?? title}:${dayKey()}` });
+  }, [recordStudy, lessonId, title]);
 
   // Computed once on mount: re-grading on every render would be wasteful and
   // the underlying localStorage values only change when the user revisits a
@@ -490,6 +503,17 @@ export function ClassroomCompletePage({ scenes, title }: ClassroomCompletePagePr
               </div>
             </motion.div>
           )}
+
+          {/* Streak — the "come back tomorrow" hook, shown right after the
+              student has just been rewarded for finishing. */}
+          <motion.div
+            initial={{ opacity: 0, y: 14, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 1.4, type: 'spring', stiffness: 220, damping: 20 }}
+            className="w-full"
+          >
+            <StreakCard />
+          </motion.div>
         </div>
       </section>
     </MotionConfig>
@@ -499,5 +523,5 @@ export function ClassroomCompletePage({ scenes, title }: ClassroomCompletePagePr
 export function ClassroomCompletePageConnected() {
   const stage = useStageStore((s) => s.stage);
   const scenes = useStageStore((s) => s.scenes);
-  return <ClassroomCompletePage scenes={scenes} title={stage?.name ?? ''} />;
+  return <ClassroomCompletePage scenes={scenes} title={stage?.name ?? ''} lessonId={stage?.id} />;
 }

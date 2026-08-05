@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useCourses } from '@/lib/hooks/use-courses';
 import { useTextbooks } from '@/lib/hooks/use-textbooks';
+import { useStudyStreakStore } from '@/lib/store/study-streak';
 import { CourseCard } from './course-card';
 import { TextbookCard } from './textbook-card';
 import type { Textbook } from '@/lib/types/textbook';
@@ -15,6 +16,7 @@ interface TextbookBrowserProps {
 
 export function TextbookBrowser({ selectedTextbook, onSelectTextbook }: TextbookBrowserProps) {
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
+  const setActiveCourse = useStudyStreakStore((s) => s.setActiveCourse);
   const { courses, loading: coursesLoading, error: coursesError } = useCourses();
   const { textbooks, loading: textbooksLoading, error: textbooksError } = useTextbooks(expandedCourseId);
 
@@ -50,9 +52,14 @@ export function TextbookBrowser({ selectedTextbook, onSelectTextbook }: Textbook
   function handleSelectTextbook(textbook: Textbook) {
     if (selectedTextbook?.textbook_id === textbook.textbook_id) {
       onSelectTextbook(null);
-    } else {
-      onSelectTextbook(textbook);
+      setActiveCourse(null);
+      return;
     }
+    onSelectTextbook(textbook);
+    // Picking a textbook is the clearest signal of which course the student
+    // is working in, so streak XP earned from here on is credited to it too.
+    const course = courses.find((c) => c.course_id === textbook.course_id);
+    setActiveCourse(textbook.course_id, course?.course_name);
   }
 
   return (

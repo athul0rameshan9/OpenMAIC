@@ -11,6 +11,7 @@ import { I18nProvider } from '@/lib/hooks/use-i18n';
 import { Toaster } from '@/components/ui/sonner';
 import { ServerProvidersInit } from '@/components/server-providers-init';
 import { AccessCodeGuard } from '@/components/access-code-guard';
+import { StreakCelebrations, StreakDemoSeed } from '@/components/study-streak';
 
 const inter = localFont({
   src: '../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
@@ -42,6 +43,9 @@ export default function RootLayout({
           <I18nProvider>
             <ServerProvidersInit />
             <AccessCodeGuard>{children}</AccessCodeGuard>
+            <StreakCelebrations />
+            {/* Placeholder streak history — remove once real data lands */}
+            <StreakDemoSeed />
             <Toaster position="top-center" />
           </I18nProvider>
         </ThemeProvider>
