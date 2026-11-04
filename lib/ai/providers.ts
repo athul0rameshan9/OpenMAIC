@@ -58,6 +58,22 @@ export const MONO_LOGO_PROVIDERS: ReadonlySet<string> = new Set(['openai', 'open
  * Provider registry
  */
 export const PROVIDERS: Record<ProviderId, ProviderConfig> = {
+  azure: {
+    id: 'azure',
+    name: 'Azure OpenAI',
+    type: 'openai',
+    requiresApiKey: true,
+    icon: '/logos/azure.svg',
+    models: [
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        contextWindow: 128000,
+        outputWindow: 16384,
+        capabilities: { streaming: true, tools: true, vision: true },
+      },
+    ],
+  },
   openai: {
     id: 'openai',
     name: 'OpenAI',
@@ -1444,21 +1460,35 @@ export function getModel(config: ModelConfig): ModelWithInfo {
         baseURL: effectiveBaseUrl,
       };
 
-      // Azure OpenAI endpoints require an `api-version` query parameter on
-      // every request.  The generic @ai-sdk/openai provider does not add it,
-      // so we inject it via a thin fetch wrapper when the base URL looks like
-      // an Azure OpenAI endpoint (*.openai.azure.com).
+      // Support Azure resource roots and existing deployment-scoped URLs.
       const isAzureEndpoint =
-        effectiveBaseUrl && /\.openai\.azure\.com/i.test(effectiveBaseUrl);
-      if (config.providerId === 'openai' && isAzureEndpoint) {
+        effectiveBaseUrl &&
+        /\.(openai\.azure\.com|cognitiveservices\.azure\.com)$/i.test(
+          new URL(effectiveBaseUrl).hostname,
+        );
+      const useAzure =
+        config.providerId === 'azure' || (config.providerId === 'openai' && isAzureEndpoint);
+      if (useAzure) {
+        if (!effectiveBaseUrl)
+          throw new Error('Azure OpenAI requires AZURE_API_BASE or a base URL');
+        const base = new URL(effectiveBaseUrl);
+        if (!base.pathname.replace(/\/+$/, '')) {
+          base.pathname = `/openai/deployments/${encodeURIComponent(config.modelId)}`;
+        }
+        openaiOptions.baseURL = base.toString().replace(/\/$/, '');
         const azureApiVersion =
-          process.env.AZURE_OPENAI_API_VERSION || '2025-04-01-preview';
+          process.env.AZURE_API_VERSION ||
+          process.env.AZURE_OPENAI_API_VERSION ||
+          '2025-04-01-preview';
         openaiOptions.headers = { 'api-key': effectiveApiKey };
-        const azureFetch = async (
-          url: RequestInfo | URL,
-          init?: RequestInit,
-        ) => {
-          const urlObj = new URL(typeof url === 'string' ? url : url instanceof URL ? url.toString() : (url as Request).url);
+        const azureFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+          const urlObj = new URL(
+            typeof url === 'string'
+              ? url
+              : url instanceof URL
+                ? url.toString()
+                : (url as Request).url,
+          );
           if (!urlObj.searchParams.has('api-version')) {
             urlObj.searchParams.set('api-version', azureApiVersion);
           }
@@ -1471,7 +1501,7 @@ export function getModel(config: ModelConfig): ModelWithInfo {
       // wrapper that injects vendor-specific thinking params into the HTTP
       // body. The thinking config is read from AsyncLocalStorage, set by
       // callLLM / streamLLM at call time.
-      if (config.providerId !== 'openai') {
+      if (config.providerId !== 'openai' && !useAzure) {
         const providerId = config.providerId;
         const compatFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           // Read thinking config from globalThis (set by thinking-context.ts)
@@ -1567,7 +1597,7 @@ export function getModel(config: ModelConfig): ModelWithInfo {
       // Split it into first-class reasoning parts so the agent stream and UI can
       // show a thinking panel and the answer text stays clean. Native OpenAI
       // handles reasoning itself, so it is excluded.
-      if (config.providerId !== 'openai') {
+      if (config.providerId !== 'openai' && !useAzure) {
         model = wrapLanguageModel({
           model,
           middleware: extractReasoningMiddleware({ tagName: 'think' }),

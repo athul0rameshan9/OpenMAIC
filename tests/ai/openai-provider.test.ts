@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const openAiMock = vi.hoisted(() => ({
   chat: vi.fn((modelId: string) => ({ endpoint: 'chat', modelId })),
@@ -64,6 +64,10 @@ async function captureInjectedRequestBody(
 }
 
 describe('OpenAI provider defaults', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
   beforeEach(() => {
     openAiMock.chat.mockClear();
     openAiMock.responses.mockClear();
@@ -92,6 +96,35 @@ describe('OpenAI provider defaults', () => {
       },
     });
   });
+
+  it.each([
+    [
+      'azure',
+      'https://resource.cognitiveservices.azure.com/',
+      '/openai/deployments/gpt-4o/chat/completions',
+    ],
+    ['azure', 'https://resource.openai.azure.com/', '/openai/deployments/gpt-4o/chat/completions'],
+    [
+      'openai',
+      'https://resource.openai.azure.com/openai/deployments/gpt-4o',
+      '/openai/deployments/gpt-4o/chat/completions',
+    ],
+  ] as const)(
+    'sends Azure auth and API version for %s at %s',
+    async (providerId, baseUrl, expectedPath) => {
+      vi.stubEnv('AZURE_API_VERSION', '2024-12-01-preview');
+      const fetchMock = vi.fn().mockResolvedValue(new Response('{}'));
+      vi.stubGlobal('fetch', fetchMock);
+      getModel({ providerId, modelId: 'gpt-4o', apiKey: 'azure-test-key', baseUrl });
+      const options = openAiMock.createOpenAI.mock.calls.at(-1)![0];
+      expect(options.headers).toEqual({ 'api-key': 'azure-test-key' });
+      expect(openAiMock.chat).toHaveBeenCalledWith('gpt-4o');
+      await options.fetch(`${options.baseURL}/chat/completions`, { method: 'POST', body: '{}' });
+      const url = new URL(fetchMock.mock.calls[0][0]);
+      expect(url.pathname).toBe(expectedPath);
+      expect(url.searchParams.get('api-version')).toBe('2024-12-01-preview');
+    },
+  );
 
   it('routes GPT-5.5 through the OpenAI Responses API', () => {
     const { model } = getModel({

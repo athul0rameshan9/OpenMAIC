@@ -39,6 +39,9 @@ describe('resolveModel — per-stage resolution order', () => {
     mocks.getModelCalls.length = 0;
     delete process.env.MODEL_ROUTES;
     delete process.env.DEFAULT_MODEL;
+    delete process.env.AI_MODEL_CHAT;
+    delete process.env.AI_MODEL_REPORT;
+    delete process.env.AI_MODEL_FAST;
   });
 
   it('throws (no hardcoded fallback) when nothing is configured', async () => {
@@ -53,6 +56,40 @@ describe('resolveModel — per-stage resolution order', () => {
     const { resolveModel } = await import('@/lib/server/resolve-model');
     const r = await resolveModel({ stage: 'scene-content' });
     expect(r.modelString).toBe('openai:gpt-5.4-mini');
+  });
+
+  it.each([
+    ['chat-adapter', 'AI_MODEL_CHAT'],
+    ['scene-content:slide', 'AI_MODEL_REPORT'],
+    ['generate-classroom', 'AI_MODEL_REPORT'],
+    ['quiz-grade', 'AI_MODEL_FAST'],
+  ] as const)(
+    'routes %s through its configured role without client credentials',
+    async (stage, env) => {
+      process.env[env] = 'azure:gpt-4o';
+      const { resolveModel } = await import('@/lib/server/resolve-model');
+      const result = await resolveModel({
+        stage,
+        modelString: 'openai:old-model',
+        apiKey: 'client-key',
+        baseUrl: 'https://client.test',
+        providerType: 'anthropic',
+      });
+      expect(result.modelString).toBe('azure:gpt-4o');
+      expect(mocks.getModelCalls.at(-1)).toMatchObject({
+        apiKey: 'server-key',
+        baseUrl: undefined,
+        providerType: undefined,
+      });
+    },
+  );
+
+  it('prefers an explicit stage route over the role and uses chat as the final default', async () => {
+    process.env.AI_MODEL_CHAT = 'azure:gpt-4o';
+    process.env.MODEL_ROUTES = JSON.stringify({ 'chat-adapter': 'openai:gpt-5.4' });
+    const { resolveModel } = await import('@/lib/server/resolve-model');
+    expect((await resolveModel({ stage: 'chat-adapter' })).modelString).toBe('openai:gpt-5.4');
+    expect((await resolveModel({})).modelString).toBe('azure:gpt-4o');
   });
 
   it('uses the stage route over DEFAULT_MODEL', async () => {

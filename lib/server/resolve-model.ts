@@ -60,8 +60,19 @@ export async function resolveModel(params: {
   // model fallback — if nothing resolves we fail loud rather than silently pick a
   // vendor default.
   const stageRoute = getStageRoute(params.stage);
-  const stageModel = stageRoute?.model;
-  const modelString = stageModel || params.modelString || process.env.DEFAULT_MODEL;
+  // Role settings are operator routes too, so saved browser models cannot
+  // override the deployment's configured model or supply its credentials.
+  const stage = params.stage;
+  const roleModel = stage
+    ? stage === 'agent-profiles' || stage === 'quiz-grade' || stage === 'web-search-query-rewrite'
+      ? process.env.AI_MODEL_FAST
+      : stage.startsWith('scene-') || stage === 'generate-classroom'
+        ? process.env.AI_MODEL_REPORT
+        : process.env.AI_MODEL_CHAT
+    : undefined;
+  const stageModel = stageRoute?.model || roleModel;
+  const modelString =
+    stageModel || params.modelString || process.env.DEFAULT_MODEL || process.env.AI_MODEL_CHAT;
   if (!modelString) {
     throw new Error(
       'No model could be resolved. Configure DEFAULT_MODEL (and/or a MODEL_ROUTES entry for this stage), or send a model via x-model.',

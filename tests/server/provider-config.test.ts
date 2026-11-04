@@ -7,6 +7,7 @@ let yamlOverride: string | null = null;
 
 const ENV_PREFIXES_TO_CLEAR = [
   'OPENAI',
+  'AZURE',
   'ANTHROPIC',
   'GOOGLE',
   'DEEPSEEK',
@@ -54,6 +55,7 @@ function clearProviderEnv() {
   delete process.env.TAVILY_API_KEY;
   delete process.env.BOCHA_API_KEY;
   delete process.env.BOCHA_BASE_URL;
+  delete process.env.AZURE_API_BASE;
 }
 
 vi.mock('fs', async (importOriginal) => {
@@ -84,6 +86,18 @@ describe('provider-config', () => {
   });
 
   describe('resolveApiKey', () => {
+    it('loads Azure credentials and the resource endpoint without exposing them', async () => {
+      vi.stubEnv('AZURE_API_KEY', 'azure-server-key');
+      vi.stubEnv('AZURE_API_BASE', 'https://resource.cognitiveservices.azure.com/');
+      vi.stubEnv('AZURE_MODELS', 'gpt-4o');
+      const { resolveApiKey, resolveBaseUrl, getServerProviders } =
+        await import('@/lib/server/provider-config');
+      expect(resolveApiKey('azure', 'client-key')).toBe('azure-server-key');
+      expect(resolveBaseUrl('azure', 'https://client.test')).toBe(
+        'https://resource.cognitiveservices.azure.com/',
+      );
+      expect(getServerProviders()).toEqual({ azure: { models: ['gpt-4o'] } });
+    });
     it('returns client key when provided', async () => {
       const { resolveApiKey } = await import('@/lib/server/provider-config');
       expect(resolveApiKey('openai', 'sk-client')).toBe('sk-client');
