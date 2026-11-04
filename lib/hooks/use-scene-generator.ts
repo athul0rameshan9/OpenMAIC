@@ -17,6 +17,7 @@ import { useAgentRegistry } from '@/lib/orchestration/registry/store';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { lazyBoundedMap } from '@/lib/utils/concurrency';
 import { createLogger } from '@/lib/logger';
+import { toast } from 'sonner';
 
 const log = createLogger('SceneGenerator');
 
@@ -159,6 +160,8 @@ export async function generateAndStoreTTS(
   // Narration is the teacher's voice — resolve it from the teacher agent profile
   // through the single resolver (registers + references by id for stable timbre).
   const teacher = pickNarratorAgent(useAgentRegistry.getState().listAgents());
+  const targetClassroomId = classroomId ?? useStageStore.getState().stage?.id;
+  if (!targetClassroomId) throw new Error('A classroom is required to save speech audio');
   const providerOptions = await resolveAgentVoiceOptions(teacher, {
     providerId: settings.ttsProviderId,
     providerConfig: ttsProviderConfig,
@@ -181,7 +184,7 @@ export async function generateAndStoreTTS(
       ttsBaseUrl:
         ttsProviderConfig?.baseUrl || ttsProviderConfig?.customDefaultBaseUrl || undefined,
       ttsProviderOptions: providerOptions,
-      classroomId: classroomId ?? useStageStore.getState().stage?.id,
+      classroomId: targetClassroomId,
     }),
     signal,
   });
@@ -189,7 +192,7 @@ export async function generateAndStoreTTS(
   const data = await response
     .json()
     .catch(() => ({ success: false, error: response.statusText || 'Invalid TTS response' }));
-  if (!response.ok || !data.success || !data.base64 || !data.format) {
+  if (!response.ok || !data.success || !data.base64 || !data.format || !data.audioUrl) {
     const err = new Error(
       data.details || data.error || `TTS request failed: HTTP ${response.status}`,
     );
@@ -203,12 +206,17 @@ export async function generateAndStoreTTS(
     bytes[i] = binary.charCodeAt(i);
   }
   const blob = new Blob([bytes], { type: `audio/${data.format}` });
-  await db.audioFiles.put({
-    id: audioId,
-    blob,
-    format: data.format,
-    createdAt: Date.now(),
-  });
+  try {
+    await db.audioFiles.put({
+      id: audioId,
+      blob,
+      format: data.format,
+      createdAt: Date.now(),
+    });
+  } catch (error) {
+    // Storage is authoritative; a full/unavailable browser cache must not discard its URL.
+    log.warn('Could not cache durable speech audio:', audioId, error);
+  }
 
   return typeof data.audioUrl === 'string' ? data.audioUrl : null;
 }
@@ -487,7 +495,7 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             const scene = actionsResult.scene;
             const settings = useSettingsStore.getState();
 
-            // TTS generation — failure means the whole scene fails
+            // Keep the lesson usable through browser speech when that fallback is enabled.
             if (
               settings.ttsEnabled &&
               settings.ttsProviderId !== 'browser-native-tts' &&
@@ -506,11 +514,24 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
                   pausedByFailureOrAbort = true;
                   break;
                 }
-                store.getState().addFailedOutline(outline);
-                options.onSceneFailed?.(outline, ttsResult.error || 'TTS generation failed');
-                store.getState().setGenerationStatus('paused');
-                pausedByFailureOrAbort = true;
-                break;
+                if (
+                  isTTSProviderEnabled(
+                    'browser-native-tts',
+                    settings.ttsProvidersConfig?.['browser-native-tts'],
+                  )
+                ) {
+                  log.warn(
+                    'Narration was not fully saved; using enabled browser speech fallback',
+                    ttsResult.error,
+                  );
+                  toast.warning(ttsResult.error || 'Some speech audio could not be saved');
+                } else {
+                  store.getState().addFailedOutline(outline);
+                  options.onSceneFailed?.(outline, ttsResult.error || 'TTS generation failed');
+                  store.getState().setGenerationStatus('paused');
+                  pausedByFailureOrAbort = true;
+                  break;
+                }
               }
             }
 
@@ -683,8 +704,23 @@ export function useSceneGenerator(options: UseSceneGeneratorOptions = {}) {
             signal,
           );
           if (!ttsResult.success) {
-            store.getState().addFailedOutline(outline);
-            return;
+            if (signal.aborted || store.getState().generationEpoch !== state.generationEpoch)
+              return;
+            if (
+              isTTSProviderEnabled(
+                'browser-native-tts',
+                settings.ttsProvidersConfig?.['browser-native-tts'],
+              )
+            ) {
+              log.warn(
+                'Narration was not fully saved; using enabled browser speech fallback',
+                ttsResult.error,
+              );
+              toast.warning(ttsResult.error || 'Some speech audio could not be saved');
+            } else {
+              store.getState().addFailedOutline(outline);
+              return;
+            }
           }
         }
 

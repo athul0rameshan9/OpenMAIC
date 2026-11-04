@@ -498,33 +498,35 @@ export class PlaybackEngine {
         // which would hang playback on that slide.
         const hasText = !!speechAction.text.trim();
 
+        const playFallback = () => {
+          if (this.mode !== 'playing') return;
+          const settings = useSettingsStore.getState();
+          if (
+            hasText &&
+            settings.ttsEnabled &&
+            // Browser speech is the last-resort playback fallback even when a
+            // managed provider is selected. Respect the browser provider toggle.
+            isTTSProviderEnabled(
+              'browser-native-tts',
+              settings.ttsProvidersConfig?.['browser-native-tts'],
+            ) &&
+            typeof window !== 'undefined' &&
+            window.speechSynthesis
+          ) {
+            this.playBrowserTTS(speechAction);
+          } else {
+            scheduleReadingTimer();
+          }
+        };
+
         this.audioPlayer
           .play(speechAction.audioId || '', speechAction.audioUrl)
           .then((audioStarted) => {
-            if (!audioStarted) {
-              // No pre-generated audio — try browser-native TTS only when it is
-              // the selected provider AND actually enabled (opt-in, #665).
-              const settings = useSettingsStore.getState();
-              if (
-                hasText &&
-                settings.ttsEnabled &&
-                settings.ttsProviderId === 'browser-native-tts' &&
-                isTTSProviderEnabled(
-                  'browser-native-tts',
-                  settings.ttsProvidersConfig?.['browser-native-tts'],
-                ) &&
-                typeof window !== 'undefined' &&
-                window.speechSynthesis
-              ) {
-                this.playBrowserTTS(speechAction);
-              } else {
-                scheduleReadingTimer();
-              }
-            }
+            if (!audioStarted) playFallback();
           })
           .catch((err) => {
             log.error('TTS error:', err);
-            scheduleReadingTimer();
+            playFallback();
           });
         break;
       }

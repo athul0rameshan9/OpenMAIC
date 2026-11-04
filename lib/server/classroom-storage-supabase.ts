@@ -23,6 +23,7 @@
 import type { NextRequest } from 'next/server';
 import type { Scene, Stage } from '@/lib/types/stage';
 import { supabase } from '@/lib/supabase/client';
+import { mergeSpeechAudioRefs } from '@/lib/audio/speech-audio-refs';
 
 const STORAGE_BUCKET = 'classroom-media';
 
@@ -105,31 +106,40 @@ export async function persistClassroom(
   },
   baseUrl: string,
 ): Promise<PersistedClassroomData & { url: string }> {
-  const now = new Date().toISOString();
-
-  const { error } = await supabase
-    .from('classrooms')
-    .upsert(
-      {
+  // A browser may hold an older copy without the audio URLs added by a repair
+  // or another browser. Preserve those refs for unchanged speech. Compare the
+  // server-controlled stage timestamp on update so concurrent writes cannot
+  // silently lose refs. The predicate stays small even for very large lessons.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const existing = await readClassroom(data.id);
+    const scenes = existing ? mergeSpeechAudioRefs(data.scenes, existing.scenes) : data.scenes;
+    const createdAt = existing?.createdAt ?? new Date().toISOString();
+    const stage = {
+      ...data.stage,
+      updatedAt: Math.max(Date.now(), (existing?.stage.updatedAt ?? 0) + 1),
+    };
+    if (existing) {
+      let query = supabase.from('classrooms').update({ stage, scenes }).eq('id', data.id);
+      query =
+        existing.stage.updatedAt == null
+          ? query.is('stage->>updatedAt', null)
+          : query.eq('stage->>updatedAt', String(existing.stage.updatedAt));
+      const { data: updated, error } = await query.select('id');
+      if (error) throw new Error(`Supabase persist failed: ${error.message}`);
+      if (!updated?.length) continue;
+    } else {
+      const { error } = await supabase.from('classrooms').insert({
         id: data.id,
-        stage: data.stage,
-        scenes: data.scenes,
-        created_at: now,
-      },
-      { onConflict: 'id' },
-    );
-
-  if (error) {
-    throw new Error(`Supabase persist failed: ${error.message}`);
+        stage,
+        scenes,
+        created_at: createdAt,
+      });
+      if (error?.code === '23505') continue;
+      if (error) throw new Error(`Supabase persist failed: ${error.message}`);
+    }
+    return { ...data, stage, scenes, createdAt, url: `${baseUrl}/classroom/${data.id}` };
   }
-
-  return {
-    id: data.id,
-    stage: data.stage,
-    scenes: data.scenes,
-    createdAt: now,
-    url: `${baseUrl}/classroom/${data.id}`,
-  };
+  throw new Error('Classroom changed during save; please retry');
 }
 
 /**
@@ -144,20 +154,16 @@ export async function uploadClassroomMedia(
 ): Promise<string> {
   const storagePath = `${classroomId}/${subPath}`;
 
-  const { error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(storagePath, fileBuffer, {
-      contentType,
-      upsert: true,
-    });
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(storagePath, fileBuffer, {
+    contentType,
+    upsert: true,
+  });
 
   if (error) {
     throw new Error(`Supabase storage upload failed: ${error.message}`);
   }
 
-  const { data: urlData } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(storagePath);
+  const { data: urlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
 
   return urlData.publicUrl;
 }
@@ -167,9 +173,7 @@ export async function uploadClassroomMedia(
  */
 export function getClassroomMediaUrl(classroomId: string, subPath: string): string {
   const storagePath = `${classroomId}/${subPath}`;
-  const { data } = supabase.storage
-    .from(STORAGE_BUCKET)
-    .getPublicUrl(storagePath);
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
   return data.publicUrl;
 }
 
@@ -182,9 +186,7 @@ export async function downloadClassroomMedia(
 ): Promise<{ buffer: Buffer; contentType: string } | null> {
   const storagePath = `${classroomId}/${subPath}`;
 
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .download(storagePath);
+  const { data, error } = await supabase.storage.from(STORAGE_BUCKET).download(storagePath);
 
   if (error) {
     if (error.message.includes('not found') || error.message.includes('Object not found')) {
@@ -228,9 +230,7 @@ export async function listClassrooms(limit = 50): Promise<PersistedClassroomData
 export async function deleteClassroom(id: string): Promise<void> {
   // Delete media files from storage — enumerate known subdirectories
   for (const subDir of ['audio', 'media']) {
-    const { data: subFiles } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .list(`${id}/${subDir}`);
+    const { data: subFiles } = await supabase.storage.from(STORAGE_BUCKET).list(`${id}/${subDir}`);
 
     if (subFiles && subFiles.length > 0) {
       const paths = subFiles
@@ -243,10 +243,7 @@ export async function deleteClassroom(id: string): Promise<void> {
   }
 
   // Delete the database row
-  const { error } = await supabase
-    .from('classrooms')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabase.from('classrooms').delete().eq('id', id);
 
   if (error) {
     throw new Error(`Supabase delete failed: ${error.message}`);

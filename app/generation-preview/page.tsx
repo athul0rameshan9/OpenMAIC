@@ -14,7 +14,8 @@ import { useSettingsStore } from '@/lib/store/settings';
 import { useAgentRegistry } from '@/lib/orchestration/registry/store';
 import { getEnabledProvidersWithVoices } from '@/lib/audio/voice-resolver';
 import { isTTSProviderEnabled } from '@/lib/audio/provider-enablement';
-import { resolveAgentVoiceOptions, pickNarratorAgent } from '@/lib/audio/agent-voice';
+import { generateAndStoreTTS } from '@/lib/hooks/use-scene-generator';
+import { persistClassroomToServer } from '@/lib/utils/classroom-persistence';
 import { useI18n } from '@/lib/hooks/use-i18n';
 import {
   loadImageMapping,
@@ -23,10 +24,10 @@ import {
   storeImages,
 } from '@/lib/utils/image-storage';
 import { getCurrentModelConfig } from '@/lib/utils/model-config';
-import { db } from '@/lib/utils/database';
 import { MAX_PDF_CONTENT_CHARS, MAX_VISION_IMAGES } from '@/lib/constants/generation';
 import { buildVideoManifestFromOutlines } from '@/lib/media/video-manifest';
 import { nanoid } from 'nanoid';
+import { toast } from 'sonner';
 import type { Stage } from '@/lib/types/stage';
 import type { SceneOutline, PdfImage, ImageMapping } from '@/lib/types/generation';
 import { AgentRevealModal } from '@/components/agent/agent-reveal-modal';
@@ -712,9 +713,7 @@ function GenerationPreviewContent() {
           ];
 
           const getAvailableVoicesForGeneration = () => {
-            const providers = getEnabledProvidersWithVoices(
-              settings.ttsProvidersConfig,
-            );
+            const providers = getEnabledProvidersWithVoices(settings.ttsProvidersConfig);
             return providers.flatMap((p) =>
               p.voices.map((v) => ({
                 providerId: p.providerId,
@@ -916,15 +915,6 @@ function GenerationPreviewContent() {
           settings.ttsProvidersConfig?.[settings.ttsProviderId],
         )
       ) {
-        const ttsProviderConfig = settings.ttsProvidersConfig?.[settings.ttsProviderId];
-        // Narration uses the teacher agent's voice (single resolver → stable timbre).
-        const teacherAgent = pickNarratorAgent(useAgentRegistry.getState().listAgents());
-        const providerOptions = await resolveAgentVoiceOptions(teacherAgent, {
-          providerId: settings.ttsProviderId,
-          providerConfig: ttsProviderConfig,
-          voiceId: settings.ttsVoice,
-          language: languageDirective,
-        });
         const speechActions = (data.scene.actions || []).filter(
           (a: { type: string; text?: string }) => a.type === 'speech' && a.text,
         );
@@ -934,48 +924,14 @@ function GenerationPreviewContent() {
           const audioId = `tts_${action.id}`;
           action.audioId = audioId;
           try {
-            const resp = await fetch('/api/generate/tts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                text: action.text,
-                audioId,
-                ttsProviderId: settings.ttsProviderId,
-                ttsModelId: ttsProviderConfig?.modelId,
-                ttsVoice: settings.ttsVoice,
-                ttsSpeed: settings.ttsSpeed,
-                ttsApiKey: ttsProviderConfig?.apiKey || undefined,
-                // Managed providers resolve their base URL server-side; only
-                // send the client's own base URL (custom providers).
-                ttsBaseUrl:
-                  ttsProviderConfig?.baseUrl ||
-                  ttsProviderConfig?.customDefaultBaseUrl ||
-                  undefined,
-                ttsProviderOptions: providerOptions,
-                classroomId: stage.id,
-              }),
+            const audioUrl = await generateAndStoreTTS(
+              audioId,
+              action.text,
+              languageDirective,
               signal,
-            });
-            if (!resp.ok) {
-              ttsFailCount++;
-              continue;
-            }
-            const ttsData = await resp.json();
-            if (!ttsData.success) {
-              ttsFailCount++;
-              continue;
-            }
-            const binary = atob(ttsData.base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            const blob = new Blob([bytes], { type: `audio/${ttsData.format}` });
-            await db.audioFiles.put({
-              id: audioId,
-              blob,
-              format: ttsData.format,
-              createdAt: Date.now(),
-            });
-            if (typeof ttsData.audioUrl === 'string') action.audioUrl = ttsData.audioUrl;
+              stage.id,
+            );
+            if (audioUrl) action.audioUrl = audioUrl;
           } catch (err) {
             log.warn(`[TTS] Failed for ${audioId}:`, err);
             ttsFailCount++;
@@ -983,7 +939,19 @@ function GenerationPreviewContent() {
         }
 
         if (ttsFailCount > 0 && speechActions.length > 0) {
-          throw new Error(t('generation.speechFailed'));
+          if (
+            isTTSProviderEnabled(
+              'browser-native-tts',
+              settings.ttsProvidersConfig?.['browser-native-tts'],
+            )
+          ) {
+            log.warn(
+              'Some narration could not be saved; enabled browser speech will handle missing audio during playback',
+            );
+            toast.warning(t('generation.speechFailed'));
+          } else {
+            throw new Error(t('generation.speechFailed'));
+          }
         }
       }
 
@@ -1009,17 +977,9 @@ function GenerationPreviewContent() {
       sessionStorage.removeItem('generationSession');
       await store.saveToStorage();
 
-      // Persist to Supabase so the classroom is accessible cross-browser
-      try {
-        const { stage: stageData, scenes } = store;
-        await fetch('/api/classroom', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stage: stageData, scenes }),
-        });
-      } catch {
-        // Best-effort — classroom still works locally via IndexedDB
-      }
+      // Read the current store after addScene; the original store snapshot predates it.
+      const { stage: stageData, scenes } = useStageStore.getState();
+      if (stageData) await persistClassroomToServer(stageData, scenes);
 
       router.push(`/classroom/${stage.id}`);
     } catch (err) {

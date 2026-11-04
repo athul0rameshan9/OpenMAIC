@@ -8,6 +8,7 @@
  */
 
 import { NextRequest } from 'next/server';
+import { createHash } from 'crypto';
 import { generateTTS, TTSRateLimitError } from '@/lib/audio/tts-providers';
 import {
   isServerConfiguredProvider,
@@ -56,6 +57,15 @@ export async function POST(req: NextRequest) {
         400,
         'Missing required fields: text, audioId, ttsProviderId, ttsVoice',
       );
+    }
+
+    if (
+      (classroomId !== undefined &&
+        (typeof classroomId !== 'string' || !isValidClassroomId(classroomId))) ||
+      typeof audioId !== 'string' ||
+      !/^[a-zA-Z0-9_-]+$/.test(audioId)
+    ) {
+      return apiError('INVALID_REQUEST', 400, 'Invalid classroomId or audioId');
     }
 
     // Reject browser-native TTS — must be handled client-side
@@ -108,20 +118,20 @@ export async function POST(req: NextRequest) {
     // is playable from any browser — the client's IndexedDB cache is per-device.
     // Both ids become storage path segments, so gate on the same charset check.
     let audioUrl: string | undefined;
-    if (classroomId && isValidClassroomId(classroomId) && /^[a-zA-Z0-9_-]+$/.test(audioId)) {
-      try {
-        const publicUrl = await uploadClassroomMedia(
-          classroomId,
-          `audio/${audioId}.${format}`,
-          Buffer.from(audio),
-          format === 'mp3' ? 'audio/mpeg' : `audio/${format}`,
-        );
-        // Regeneration reuses the same path and public URLs are CDN-cached —
-        // version the URL so edited lines don't replay stale audio.
-        audioUrl = `${publicUrl}?v=${Date.now()}`;
-      } catch (uploadError) {
-        log.warn(`Storage upload failed for ${audioId} (classroom ${classroomId}):`, uploadError);
-      }
+    if (classroomId) {
+      // Keep regenerated files immutable: a late request for an older edit
+      // must never overwrite the file referenced by a newer speech action.
+      const audioVersion = createHash('sha256')
+        .update(Buffer.from(audio))
+        .digest('hex')
+        .slice(0, 16);
+      const publicUrl = await uploadClassroomMedia(
+        classroomId,
+        `audio/${audioId}_${audioVersion}.${format}`,
+        Buffer.from(audio),
+        format === 'mp3' ? 'audio/mpeg' : `audio/${format}`,
+      );
+      audioUrl = publicUrl;
     }
 
     return apiSuccess({ audioId, base64, format, audioUrl });

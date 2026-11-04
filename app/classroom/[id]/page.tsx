@@ -14,6 +14,9 @@ import { MediaStageProvider } from '@/lib/contexts/media-stage-context';
 import { generateMediaForOutlines } from '@/lib/media/media-orchestrator';
 import { migrateScene } from '@/lib/edit/slide-schema';
 import type { Scene } from '@/lib/types/stage';
+import { mergeSpeechAudioRefs } from '@/lib/audio/speech-audio-refs';
+import { persistClassroomToServer } from '@/lib/utils/classroom-persistence';
+import { toast } from 'sonner';
 
 const log = createLogger('Classroom');
 
@@ -34,106 +37,125 @@ export default function ClassroomDetailPage() {
       // Persist completed classroom to Supabase
       const { stage, scenes } = useStageStore.getState();
       if (stage) {
-        fetch('/api/classroom', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stage, scenes }),
-        }).catch((err) => {
+        persistClassroomToServer(stage, scenes).catch((err) => {
           log.warn('[Classroom] Server persist failed:', err);
+          toast.error(
+            'Could not save the classroom to the server. Your browser copy is still available.',
+          );
         });
       }
     },
   });
 
-  const loadClassroom = useCallback(async () => {
-    try {
-      await loadFromStorage(classroomId);
+  const loadClassroom = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        await loadFromStorage(classroomId);
+        if (signal?.aborted) return;
 
-      // If IndexedDB had no data, try server-side storage (API-generated classrooms)
-      if (!useStageStore.getState().stage) {
-        log.info('No IndexedDB data, trying server-side storage for:', classroomId);
-        try {
-          const res = await fetch(`/api/classroom?id=${encodeURIComponent(classroomId)}`);
-          if (res.ok) {
-            const json = await res.json();
-            if (json.success && json.classroom) {
-              const { stage, scenes } = json.classroom;
-              useStageStore.getState().setStage(stage);
-              // Normalize legacy slide content (missing schemaVersion) on the
-              // way in, same as the store's setScenes/loadFromStorage paths —
-              // server snapshots predate the schema field.
-              const migrated = (scenes as Scene[]).map(migrateScene);
-              useStageStore.setState({
-                scenes: migrated,
-                currentSceneId: migrated[0]?.id ?? null,
-                // Match `loadFromStorage` semantics: mode is transient UI
-                // state, not persisted with the stage. Reset on every
-                // classroom load so SPA navigation doesn't carry Pro
-                // mode across.
-                mode: 'playback',
-              });
-              log.info('Loaded from server-side storage:', classroomId);
+        // Always check for repaired audio references, including when the lesson is cached locally.
+        // Only missing audio refs are merged; browser lesson edits stay intact.
+        {
+          try {
+            const timeout = AbortSignal.timeout(10_000);
+            const res = await fetch(`/api/classroom?id=${encodeURIComponent(classroomId)}`, {
+              signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+            });
+            if (res.ok) {
+              const json = await res.json();
+              if (signal?.aborted) return;
+              if (json.success && json.classroom) {
+                const { stage, scenes } = json.classroom;
+                const current = useStageStore.getState();
+                if (current.stage?.id === classroomId) {
+                  const merged = mergeSpeechAudioRefs(current.scenes, scenes as Scene[]);
+                  if (merged !== current.scenes) {
+                    useStageStore.setState({ scenes: merged });
+                    await useStageStore.getState().saveToStorage();
+                  }
+                } else {
+                  useStageStore.getState().setStage(stage);
+                  // Normalize legacy slide content (missing schemaVersion) on the
+                  // way in, same as the store's setScenes/loadFromStorage paths —
+                  // server snapshots predate the schema field.
+                  const migrated = (scenes as Scene[]).map(migrateScene);
+                  useStageStore.setState({
+                    scenes: migrated,
+                    currentSceneId: migrated[0]?.id ?? null,
+                    // Match `loadFromStorage` semantics: mode is transient UI
+                    // state, not persisted with the stage. Reset on every
+                    // classroom load so SPA navigation doesn't carry Pro
+                    // mode across.
+                    mode: 'playback',
+                  });
+                  log.info('Loaded from server-side storage:', classroomId);
 
-              // Hydrate server-generated agents into IndexedDB + registry.
-              // Don't set selectedAgentIds here — the general agent
-              // restoration logic below (Path 2) handles it uniformly.
-              if (stage.generatedAgentConfigs?.length) {
-                const { saveGeneratedAgents } = await import('@/lib/orchestration/registry/store');
-                await saveGeneratedAgents(stage.id, stage.generatedAgentConfigs);
-                log.info('Hydrated server-generated agents for stage:', stage.id);
+                  // Hydrate server-generated agents into IndexedDB + registry.
+                  // Don't set selectedAgentIds here — the general agent
+                  // restoration logic below (Path 2) handles it uniformly.
+                  if (stage.generatedAgentConfigs?.length) {
+                    const { saveGeneratedAgents } =
+                      await import('@/lib/orchestration/registry/store');
+                    await saveGeneratedAgents(stage.id, stage.generatedAgentConfigs);
+                    log.info('Hydrated server-generated agents for stage:', stage.id);
+                  }
+                }
               }
             }
+          } catch (fetchErr) {
+            log.warn('Server-side storage fetch failed:', fetchErr);
           }
-        } catch (fetchErr) {
-          log.warn('Server-side storage fetch failed:', fetchErr);
         }
-      }
 
-      // Restore completed media generation tasks from IndexedDB
-      await useMediaGenerationStore.getState().restoreFromDB(classroomId);
-      // Restore agents for this stage
-      const { loadGeneratedAgentsForStage, useAgentRegistry } =
-        await import('@/lib/orchestration/registry/store');
-      const generatedAgentIds = await loadGeneratedAgentsForStage(classroomId);
-      const { useSettingsStore } = await import('@/lib/store/settings');
-      const { restoreAgentSelection } =
-        await import('@/lib/orchestration/registry/agent-selection');
-      // Keep the user's explicit AgentBar mode/selection when still valid for
-      // this stage instead of unconditionally forcing auto mode (which
-      // clobbered it on every classroom visit); fall back to the stage-derived
-      // defaults otherwise, marking them as NOT user-set so the next classroom
-      // never mistakes them for a choice. Stale generated IDs (from another
-      // stage / pre-bleed-fix) never validate, so they don't resolve against a
-      // leftover registry entry.
-      const settings = useSettingsStore.getState();
-      const registry = useAgentRegistry.getState();
-      const stage = useStageStore.getState().stage;
-      const { selection: next, isUserSet } = restoreAgentSelection({
-        persisted: { mode: settings.agentMode, selectedAgentIds: settings.selectedAgentIds },
-        persistedIsUserSet: settings.agentSelectionIsUserSet,
-        generatedAgentIds,
-        stageAgentIds: stage?.agentIds,
-        isPresetAgent: (id) => {
-          const a = registry.getAgent(id);
-          return !!a && !a.isGenerated;
-        },
-      });
-      // restoreAgentSelection returns the persisted object as-is when keeping
-      // it, so reference checks skip redundant store writes.
-      if (next.mode !== settings.agentMode) settings.setAgentMode(next.mode);
-      if (next.selectedAgentIds !== settings.selectedAgentIds) {
-        settings.setSelectedAgentIds(next.selectedAgentIds);
+        if (signal?.aborted) return;
+
+        // Restore completed media generation tasks from IndexedDB
+        await useMediaGenerationStore.getState().restoreFromDB(classroomId);
+        // Restore agents for this stage
+        const { loadGeneratedAgentsForStage, useAgentRegistry } =
+          await import('@/lib/orchestration/registry/store');
+        const generatedAgentIds = await loadGeneratedAgentsForStage(classroomId);
+        const { useSettingsStore } = await import('@/lib/store/settings');
+        const { restoreAgentSelection } =
+          await import('@/lib/orchestration/registry/agent-selection');
+        // Keep the user's explicit AgentBar mode/selection when still valid for
+        // this stage instead of unconditionally forcing auto mode (which
+        // clobbered it on every classroom visit); fall back to the stage-derived
+        // defaults otherwise, marking them as NOT user-set so the next classroom
+        // never mistakes them for a choice. Stale generated IDs (from another
+        // stage / pre-bleed-fix) never validate, so they don't resolve against a
+        // leftover registry entry.
+        const settings = useSettingsStore.getState();
+        const registry = useAgentRegistry.getState();
+        const stage = useStageStore.getState().stage;
+        const { selection: next, isUserSet } = restoreAgentSelection({
+          persisted: { mode: settings.agentMode, selectedAgentIds: settings.selectedAgentIds },
+          persistedIsUserSet: settings.agentSelectionIsUserSet,
+          generatedAgentIds,
+          stageAgentIds: stage?.agentIds,
+          isPresetAgent: (id) => {
+            const a = registry.getAgent(id);
+            return !!a && !a.isGenerated;
+          },
+        });
+        // restoreAgentSelection returns the persisted object as-is when keeping
+        // it, so reference checks skip redundant store writes.
+        if (next.mode !== settings.agentMode) settings.setAgentMode(next.mode);
+        if (next.selectedAgentIds !== settings.selectedAgentIds) {
+          settings.setSelectedAgentIds(next.selectedAgentIds);
+        }
+        if (isUserSet !== settings.agentSelectionIsUserSet) {
+          settings.setAgentSelectionIsUserSet(isUserSet);
+        }
+      } catch (error) {
+        log.error('Failed to load classroom:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load classroom');
+      } finally {
+        if (!signal?.aborted) setLoading(false);
       }
-      if (isUserSet !== settings.agentSelectionIsUserSet) {
-        settings.setAgentSelectionIsUserSet(isUserSet);
-      }
-    } catch (error) {
-      log.error('Failed to load classroom:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load classroom');
-    } finally {
-      setLoading(false);
-    }
-  }, [classroomId, loadFromStorage]);
+    },
+    [classroomId, loadFromStorage],
+  );
 
   useEffect(() => {
     // Reset loading state on course switch to unmount Stage during transition,
@@ -152,10 +174,12 @@ export default function ClassroomDetailPage() {
     // Clear whiteboard history to prevent snapshots from a previous course leaking in.
     useWhiteboardHistoryStore.getState().clearHistory();
 
-    loadClassroom();
+    const controller = new AbortController();
+    loadClassroom(controller.signal);
 
     // Cancel ongoing generation when classroomId changes or component unmounts
     return () => {
+      controller.abort();
       stop();
     };
   }, [classroomId, loadClassroom, stop]);
@@ -217,12 +241,11 @@ export default function ClassroomDetailPage() {
       // Persist to Supabase on first completion (skip on page refresh)
       if (!wasAlreadyComplete) {
         const { scenes: allScenes } = useStageStore.getState();
-        fetch('/api/classroom', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stage, scenes: allScenes }),
-        }).catch((err) => {
+        persistClassroomToServer(stage, allScenes).catch((err) => {
           log.warn('[Classroom] Server persist failed:', err);
+          toast.error(
+            'Could not save the classroom to the server. Your browser copy is still available.',
+          );
         });
       }
       // Resume media only for outlines that still have a scene. On a finished

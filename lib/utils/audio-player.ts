@@ -20,6 +20,8 @@ export class AudioPlayer {
   private muted: boolean = false;
   private volume: number = 1;
   private playbackRate: number = 1;
+  private blobUrl: string | null = null;
+  private playbackRequest = 0;
 
   /**
    * Play audio (from URL or IndexedDB pre-generated cache)
@@ -28,26 +30,37 @@ export class AudioPlayer {
    * @returns true if audio started playing, false if no audio (TTS disabled or not generated)
    */
   public async play(audioId: string, audioUrl?: string): Promise<boolean> {
+    this.stop();
+    const request = this.playbackRequest;
     try {
       // 1. Try audioUrl first (server-generated TTS)
       if (audioUrl) {
-        this.stop();
         this.audio = new Audio();
+        const remoteAudio = this.audio;
         this.audio.src = audioUrl;
         if (this.muted) this.audio.volume = 0;
         else this.audio.volume = this.volume;
         this.audio.defaultPlaybackRate = this.playbackRate;
         this.audio.playbackRate = this.playbackRate;
         this.audio.addEventListener('ended', () => {
-          this.onEndedCallback?.();
+          if (request === this.playbackRequest) this.onEndedCallback?.();
         });
-        await this.audio.play();
-        this.audio.playbackRate = this.playbackRate;
-        return true;
+        try {
+          await remoteAudio.play();
+          if (request !== this.playbackRequest) return true;
+          remoteAudio.playbackRate = this.playbackRate;
+          return true;
+        } catch (error) {
+          // A stop, seek or newer play request invalidates this fallback chain.
+          if (request !== this.playbackRequest) return true;
+          log.warn('Remote audio unavailable, trying browser cache:', error);
+          this.resetAudio();
+        }
       }
 
       // 2. Fall back to IndexedDB (client-generated TTS)
       const audioRecord = await db.audioFiles.get(audioId);
+      if (request !== this.playbackRequest) return true;
 
       if (!audioRecord) {
         // Pre-generated audio does not exist (generation failed), skip silently
@@ -55,13 +68,15 @@ export class AudioPlayer {
       }
 
       // Stop current playback
-      this.stop();
+      this.resetAudio();
 
       // Create audio element
       this.audio = new Audio();
+      const cachedAudio = this.audio;
 
       // Set audio source
       const blobUrl = URL.createObjectURL(audioRecord.blob);
+      this.blobUrl = blobUrl;
       this.audio.src = blobUrl;
       if (this.muted) this.audio.volume = 0;
       else this.audio.volume = this.volume;
@@ -72,7 +87,8 @@ export class AudioPlayer {
 
       // Set ended callback
       this.audio.addEventListener('ended', () => {
-        URL.revokeObjectURL(blobUrl);
+        if (request !== this.playbackRequest) return;
+        this.releaseBlobUrl();
         this.onEndedCallback?.();
       });
 
@@ -80,15 +96,18 @@ export class AudioPlayer {
       // load) the 'ended' listener never fires, so revoke the blob URL here to
       // avoid leaking it for the lifetime of the document.
       try {
-        await this.audio.play();
+        await cachedAudio.play();
       } catch (playError) {
-        URL.revokeObjectURL(blobUrl);
+        if (request !== this.playbackRequest) return true;
+        this.releaseBlobUrl();
         throw playError;
       }
+      if (request !== this.playbackRequest) return true;
       // Re-apply after play() — some browsers reset during load
-      this.audio.playbackRate = this.playbackRate;
+      cachedAudio.playbackRate = this.playbackRate;
       return true;
     } catch (error) {
+      if (request !== this.playbackRequest) return true;
       log.error('Failed to play audio:', error);
       throw error;
     }
@@ -107,14 +126,25 @@ export class AudioPlayer {
    * Stop playback
    */
   public stop(): void {
+    this.playbackRequest++;
+    this.resetAudio();
+  }
+
+  private resetAudio(): void {
     if (this.audio) {
       this.audio.pause();
       this.audio.currentTime = 0;
       this.audio = null;
     }
+    this.releaseBlobUrl();
     // Note: onEndedCallback intentionally NOT cleared here because play()
     // calls stop() internally — clearing would break the callback chain.
     // Stale callbacks are harmless: engine mode check prevents processNext().
+  }
+
+  private releaseBlobUrl(): void {
+    if (this.blobUrl) URL.revokeObjectURL(this.blobUrl);
+    this.blobUrl = null;
   }
 
   /**

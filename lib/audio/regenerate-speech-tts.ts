@@ -9,6 +9,8 @@
 import { db } from '@/lib/utils/database';
 import { useSettingsStore } from '@/lib/store/settings';
 import { generateAndStoreTTS } from '@/lib/hooks/use-scene-generator';
+import { useStageStore } from '@/lib/store/stage';
+import { persistClassroomToServer } from '@/lib/utils/classroom-persistence';
 
 /** Canonical audio cache key — matches the generation pipeline. */
 export function speechAudioId(sceneOrder: number, actionId: string): string {
@@ -86,7 +88,31 @@ export async function regenerateSpeechAudio(
   if (!isManagedTtsActive()) return null;
   const text = action.text?.trim();
   if (!text || !action.id) return null;
+  const initial = useStageStore.getState();
+  const classroomId = initial.stage?.id;
+  const sceneId = initial.scenes.find(
+    (scene) => scene.order === sceneOrder && scene.actions?.some((a) => a.id === action.id),
+  )?.id;
+  if (!classroomId || !sceneId) throw new Error('Speech classroom is no longer available');
   const audioId = speechAudioId(sceneOrder, action.id);
-  await generateAndStoreTTS(audioId, text, language, signal);
+  const audioUrl = await generateAndStoreTTS(audioId, text, language, signal, classroomId);
+  if (!audioUrl) return null;
+  const current = useStageStore.getState();
+  const scene = current.scenes.find((s) => s.id === sceneId);
+  const speech = scene?.actions?.find((a) => a.id === action.id && a.type === 'speech');
+  if (
+    current.stage?.id !== classroomId ||
+    !scene ||
+    speech?.type !== 'speech' ||
+    speech.text !== action.text
+  ) {
+    throw new Error('Speech changed while audio was being generated; please regenerate it');
+  }
+  current.updateScene(sceneId, {
+    actions: (scene.actions ?? []).map((a) => (a === speech ? { ...a, audioId, audioUrl } : a)),
+  });
+  await useStageStore.getState().saveToStorage();
+  const latest = useStageStore.getState();
+  if (latest.stage?.id === classroomId) await persistClassroomToServer(latest.stage, latest.scenes);
   return audioId;
 }
