@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get('state');
   const error = searchParams.get('error');
 
-  // Derive the public origin from proxy headers (Azure Container Apps sets these)
+  // Derive the public origin from proxy headers.
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost:3000';
   const proto = req.headers.get('x-forwarded-proto')?.split(',')[0] || 'https';
   const origin = `${proto}://${host}`;
