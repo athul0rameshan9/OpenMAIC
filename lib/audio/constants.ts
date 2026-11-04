@@ -39,6 +39,23 @@ export const CUSTOM_ASR_DEFAULT_LANGUAGES = [
  * TTS Provider Registry
  */
 export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
+  'groq-tts': {
+    id: 'groq-tts',
+    name: 'Groq Orpheus',
+    requiresApiKey: true,
+    defaultBaseUrl: 'https://api.groq.com/openai/v1',
+    models: [{ id: 'canopylabs/orpheus-v1-english', name: 'Orpheus English' }],
+    defaultModelId: 'canopylabs/orpheus-v1-english',
+    voices: [
+      { id: 'troy', name: 'Troy', language: 'en-US', gender: 'male' },
+      { id: 'autumn', name: 'Autumn', language: 'en-US', gender: 'female' },
+      { id: 'diana', name: 'Diana', language: 'en-US', gender: 'female' },
+      { id: 'hannah', name: 'Hannah', language: 'en-US', gender: 'female' },
+      { id: 'austin', name: 'Austin', language: 'en-US', gender: 'male' },
+      { id: 'daniel', name: 'Daniel', language: 'en-US', gender: 'male' },
+    ],
+    supportedFormats: ['wav'],
+  },
   'azure-tts': {
     id: 'azure-tts',
     name: 'Azure TTS',
@@ -68,9 +85,7 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
     icon: '/logos/browser.svg',
     models: [],
     defaultModelId: '',
-    voices: [
-      { id: 'default', name: 'Default', language: 'en-US', gender: 'neutral' },
-    ],
+    voices: [{ id: 'default', name: 'Default', language: 'en-US', gender: 'neutral' }],
     supportedFormats: ['browser'],
     speedRange: { min: 0.1, max: 10.0, default: 1.0 },
   },
@@ -80,30 +95,18 @@ export const TTS_PROVIDERS: Record<BuiltInTTSProviderId, TTSProviderConfig> = {
  * ASR Provider Registry
  */
 export const ASR_PROVIDERS: Record<BuiltInASRProviderId, ASRProviderConfig> = {
-  'azure-asr': {
-    id: 'azure-asr',
-    name: 'Azure STT',
+  'groq-asr': {
+    id: 'groq-asr',
+    name: 'Groq Whisper',
     requiresApiKey: true,
-    defaultBaseUrl: 'https://{region}.api.cognitive.microsoft.com',
-    icon: '/logos/azure.svg',
-    models: [],
-    defaultModelId: '',
-    supportedLanguages: [
-      'auto',
-      'en',
-      'zh',
-      'ja',
-      'ko',
-      'de',
-      'fr',
-      'es',
-      'it',
-      'pt',
-      'ru',
-      'ar',
-      'hi',
+    defaultBaseUrl: 'https://api.groq.com/openai/v1',
+    models: [
+      { id: 'whisper-large-v3-turbo', name: 'Whisper Large V3 Turbo' },
+      { id: 'whisper-large-v3', name: 'Whisper Large V3' },
     ],
-    supportedFormats: ['wav', 'ogg', 'webm', 'mp3', 'flac', 'm4a'],
+    defaultModelId: 'whisper-large-v3-turbo',
+    supportedLanguages: CUSTOM_ASR_DEFAULT_LANGUAGES,
+    supportedFormats: ['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'wav', 'webm'],
   },
 
   'browser-native': {
@@ -178,11 +181,13 @@ export const ASR_PROVIDERS: Record<BuiltInASRProviderId, ASRProviderConfig> = {
  * Default voice for each TTS provider.
  */
 export const DEFAULT_TTS_VOICES: Record<BuiltInTTSProviderId, string> = {
+  'groq-tts': 'troy',
   'azure-tts': 'en-US-JennyNeural',
   'browser-native-tts': 'default',
 };
 
 export const DEFAULT_TTS_MODELS: Record<BuiltInTTSProviderId, string> = {
+  'groq-tts': 'canopylabs/orpheus-v1-english',
   'azure-tts': '',
   'browser-native-tts': '',
 };

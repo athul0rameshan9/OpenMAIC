@@ -138,6 +138,8 @@ export function TTSSettings({ selectedProviderId }: TTSSettingsProps) {
   const endpointPath = (() => {
     if (isCustom) return '/audio/speech';
     switch (selectedProviderId) {
+      case 'groq-tts':
+        return '/audio/speech';
       case 'azure-tts':
         return '/cognitiveservices/v1';
       default:

@@ -89,7 +89,9 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
         onTranscription?.(result.text);
       } catch (error) {
         log.error('Transcription error:', error);
-        onError?.(error instanceof Error ? error.message : 'Speech recognition failed, please try again');
+        onError?.(
+          error instanceof Error ? error.message : 'Speech recognition failed, please try again',
+        );
       } finally {
         setIsProcessing(false);
         setRecordingTime(0);
@@ -205,9 +207,10 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
       // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm',
-      });
+      const mediaRecorder = new MediaRecorder(
+        stream,
+        MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : undefined,
+      );
 
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -224,7 +227,7 @@ export function useAudioRecorder(options: UseAudioRecorderOptions = {}) {
 
         // Merge audio chunks
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: 'audio/webm',
+          type: mediaRecorder.mimeType || audioChunksRef.current[0]?.type || 'audio/webm',
         });
 
         // Send to server for transcription

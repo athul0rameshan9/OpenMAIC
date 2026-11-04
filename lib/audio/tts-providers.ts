@@ -4,6 +4,7 @@
  * Factory pattern for routing TTS requests to appropriate provider implementations.
  *
  * Currently Supported Providers:
+ * - Groq Orpheus: https://console.groq.com/docs/text-to-speech
  * - Azure TTS: https://learn.microsoft.com/en-us/azure/ai-services/speech-service/text-to-speech
  * - Browser Native: Web Speech API (client-side only)
  *
@@ -13,6 +14,8 @@
 import type { TTSModelConfig } from './types';
 import { isCustomTTSProvider } from './types';
 import { TTS_PROVIDERS } from './constants';
+import { splitLongSpeechText } from './tts-utils';
+import { concatenateWavAudio } from './wav-concat';
 
 /**
  * Result of TTS generation
@@ -65,6 +68,8 @@ export async function generateTTS(
   }
 
   switch (config.providerId) {
+    case 'groq-tts':
+      return await generateGroqTTS(config, text);
     case 'azure-tts':
       return await generateAzureTTS(config, text);
 
@@ -79,6 +84,47 @@ export async function generateTTS(
       }
       throw new Error(`Unsupported TTS provider: ${config.providerId}`);
   }
+}
+
+/** Groq Orpheus accepts at most 200 characters and produces PCM WAV audio. */
+async function generateGroqTTS(config: TTSModelConfig, text: string): Promise<TTSGenerationResult> {
+  const provider = TTS_PROVIDERS['groq-tts'];
+  const model = config.modelId || provider.defaultModelId;
+  if (!provider.models.some((candidate) => candidate.id === model)) {
+    throw new Error(`Unsupported Groq speech model: ${model}`);
+  }
+  const voice = config.voice || 'troy';
+  if (!provider.voices.some((candidate) => candidate.id === voice)) {
+    throw new Error(`Unsupported Groq voice: ${voice}`);
+  }
+  if (!text.trim()) throw new Error('Speech text is empty');
+
+  const endpoint = `${(config.baseUrl || provider.defaultBaseUrl!).replace(/\/+$/, '')}/audio/speech`;
+  const signal = AbortSignal.timeout(55_000);
+  const parts: Uint8Array[] = [];
+  for (const input of splitLongSpeechText(text, 200)) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
+      // Orpheus does not support the synthesis speed parameter.
+      body: JSON.stringify({ model, input, voice, response_format: 'wav' }),
+      signal,
+    });
+    if (!response.ok) {
+      throwIfTtsRateLimited('Groq', response.status);
+      const error = await response.json().catch(() => null);
+      if (error?.error?.code === 'model_terms_required') {
+        throw new Error(
+          'Accept the Orpheus model terms in the Groq console before generating speech: https://console.groq.com/playground?model=canopylabs%2Forpheus-v1-english',
+        );
+      }
+      throw new Error(
+        `Groq TTS error (${response.status}): ${error?.error?.message || response.statusText}`,
+      );
+    }
+    parts.push(new Uint8Array(await response.arrayBuffer()));
+  }
+  return { audio: concatenateWavAudio(parts), format: 'wav' };
 }
 
 /**

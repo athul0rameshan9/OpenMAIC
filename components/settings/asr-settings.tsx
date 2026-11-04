@@ -132,7 +132,9 @@ export function ASRSettings({ selectedProviderId }: ASRSettingsProps) {
             setIsProcessing(true);
 
             try {
-              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              const audioBlob = new Blob(audioChunks, {
+                type: mediaRecorder.mimeType || audioChunks[0]?.type || 'audio/webm',
+              });
               const uploadAudio = await normalizeASRUploadAudio(selectedProviderId, audioBlob);
               const formData = new FormData();
               formData.append('audio', uploadAudio.blob, uploadAudio.fileName);
@@ -280,7 +282,7 @@ export function ASRSettings({ selectedProviderId }: ASRSettingsProps) {
               endpointPath = '/audio/transcriptions';
             } else {
               switch (selectedProviderId) {
-                case 'azure-asr':
+                case 'groq-asr':
                   endpointPath = '/audio/transcriptions';
                   break;
               }

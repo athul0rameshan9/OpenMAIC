@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
     const apiKey = formData.get('apiKey') as string | null;
     const baseUrl = formData.get('baseUrl') as string | null;
 
-    if (!audioFile) {
+    if (!(audioFile instanceof File)) {
       return apiError('MISSING_REQUIRED_FIELD', 400, 'Audio file is required');
     }
 
     // providerId is required from the client — no server-side store to fall back to
-    const effectiveProviderId = providerId || ('azure-asr' as ASRProviderId);
+    const effectiveProviderId = providerId || ('groq-asr' as ASRProviderId);
     resolvedProviderId = effectiveProviderId;
     resolvedModelId = modelId ?? undefined;
 

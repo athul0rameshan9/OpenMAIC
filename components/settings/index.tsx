@@ -137,6 +137,7 @@ function getTTSProviderName(providerId: TTSProviderId, t: (key: string) => strin
     return cfg?.customName || providerId;
   }
   const names: Record<string, string> = {
+    'groq-tts': t('settings.providerGroqTTS'),
     'azure-tts': t('settings.providerAzureTTS'),
     'browser-native-tts': t('settings.providerBrowserNativeTTS'),
   };
@@ -150,7 +151,7 @@ function getASRProviderName(providerId: ASRProviderId, t: (key: string) => strin
   }
   const names: Record<string, string> = {
     'browser-native': t('settings.providerBrowserNative'),
-    'azure-asr': t('settings.providerAzureASR'),
+    'groq-asr': t('settings.providerGroqASR'),
   };
   return names[providerId] || providerId;
 }

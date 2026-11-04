@@ -24,7 +24,7 @@ import { uploadClassroomMedia, isValidClassroomId } from '@/lib/server/classroom
 
 const log = createLogger('TTS API');
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   let ttsProviderId: string | undefined;
@@ -108,11 +108,7 @@ export async function POST(req: NextRequest) {
     // is playable from any browser — the client's IndexedDB cache is per-device.
     // Both ids become storage path segments, so gate on the same charset check.
     let audioUrl: string | undefined;
-    if (
-      classroomId &&
-      isValidClassroomId(classroomId) &&
-      /^[a-zA-Z0-9_-]+$/.test(audioId)
-    ) {
+    if (classroomId && isValidClassroomId(classroomId) && /^[a-zA-Z0-9_-]+$/.test(audioId)) {
       try {
         const publicUrl = await uploadClassroomMedia(
           classroomId,

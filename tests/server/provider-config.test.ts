@@ -26,7 +26,8 @@ const ENV_PREFIXES_TO_CLEAR = [
   'HY3',
   'OLLAMA',
   'TTS_AZURE',
-  'ASR_AZURE',
+  'TTS_GROQ',
+  'GROQ',
   'PDF_UNPDF',
   'PDF_MINERU',
   'PDF_MINERU_CLOUD',
@@ -51,11 +52,13 @@ function clearProviderEnv() {
     delete process.env[`${prefix}_API_KEY`];
     delete process.env[`${prefix}_BASE_URL`];
     delete process.env[`${prefix}_MODELS`];
+    delete process.env[`${prefix}_ENABLED`];
   }
   delete process.env.TAVILY_API_KEY;
   delete process.env.BOCHA_API_KEY;
   delete process.env.BOCHA_BASE_URL;
   delete process.env.AZURE_API_BASE;
+  delete process.env.TTS_BROWSER_NATIVE_ENABLED;
 }
 
 vi.mock('fs', async (importOriginal) => {
@@ -83,6 +86,32 @@ describe('provider-config', () => {
     vi.unstubAllEnvs();
     clearProviderEnv();
     yamlOverride = null;
+  });
+
+  it('loads Groq speech credentials without exposing the key or endpoint to the client', async () => {
+    vi.stubEnv('GROQ_API_KEY', 'groq-server-key');
+    vi.stubEnv('GROQ_BASE_URL', 'https://api.groq.com/openai/v1');
+    vi.stubEnv('ASR_AZURE_API_KEY', 'obsolete-azure-key');
+    const { getServerASRProviders, resolveASRApiKey, resolveASRBaseUrl } =
+      await import('@/lib/server/provider-config');
+    expect(getServerASRProviders()).toEqual({ 'groq-asr': {} });
+    expect(resolveASRApiKey('groq-asr', 'client-key')).toBe('groq-server-key');
+    expect(resolveASRBaseUrl('groq-asr', 'https://client.test')).toBe(
+      'https://api.groq.com/openai/v1',
+    );
+  });
+
+  it('loads Groq voice credentials and supports disabling the previous Azure service', async () => {
+    vi.stubEnv('TTS_GROQ_API_KEY', 'groq-voice-server-key');
+    vi.stubEnv('TTS_GROQ_BASE_URL', 'https://api.groq.com/openai/v1');
+    vi.stubEnv('TTS_AZURE_ENABLED', 'false');
+    const { getServerTTSProviders, resolveTTSApiKey, resolveTTSBaseUrl } =
+      await import('@/lib/server/provider-config');
+    expect(getServerTTSProviders()).toEqual({ 'groq-tts': {}, 'azure-tts': { disabled: true } });
+    expect(resolveTTSApiKey('groq-tts', 'client-key')).toBe('groq-voice-server-key');
+    expect(resolveTTSBaseUrl('groq-tts', 'https://client.test')).toBe(
+      'https://api.groq.com/openai/v1',
+    );
   });
 
   describe('resolveApiKey', () => {

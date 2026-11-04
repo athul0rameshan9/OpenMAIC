@@ -4,7 +4,7 @@
  * Factory pattern for routing ASR requests to appropriate provider implementations.
  *
  * Currently Supported Providers:
- * - Azure STT (https://learn.microsoft.com/azure/ai-services/speech-service/fast-transcription-create)
+ * - Groq Whisper (https://console.groq.com/docs/speech-to-text)
  * - Browser Native: Web Speech API (client-side only)
  *
  * Custom providers use an OpenAI-compatible transcription endpoint.
@@ -15,6 +15,7 @@ import { experimental_transcribe as transcribe } from 'ai';
 import type { ASRModelConfig } from './types';
 import { isCustomASRProvider } from './types';
 import { ASR_PROVIDERS } from './constants';
+import { getAudioUploadFilename } from './upload-filename';
 
 /**
  * Result of ASR transcription
@@ -41,8 +42,8 @@ export async function transcribeAudio(
     case 'browser-native':
       throw new Error('Browser Native ASR must be handled client-side using useBrowserASR hook');
 
-    case 'azure-asr':
-      return await transcribeAzureASR(config, audioBuffer);
+    case 'groq-asr':
+      return await transcribeGroqASR(config, audioBuffer);
 
     default:
       if (isCustomASRProvider(config.providerId)) {
@@ -98,88 +99,53 @@ async function transcribeOpenAICompatibleASR(
   }
 }
 
-/**
- * Azure STT implementation (Fast Transcription REST API)
- * https://learn.microsoft.com/azure/ai-services/speech-service/fast-transcription-create
- */
-async function transcribeAzureASR(
+/** Groq's OpenAI-compatible multipart transcription endpoint. */
+async function transcribeGroqASR(
   config: ASRModelConfig,
   audioBuffer: Buffer | Blob,
 ): Promise<ASRTranscriptionResult> {
-  const rawBaseUrl = config.baseUrl || ASR_PROVIDERS['azure-asr'].defaultBaseUrl!;
-
-  if (!rawBaseUrl || rawBaseUrl.includes('{region}')) {
-    throw new Error('Azure STT base URL must include a real region');
+  const provider = ASR_PROVIDERS['groq-asr'];
+  const model = config.modelId || provider.defaultModelId;
+  if (!provider.models.some((candidate) => candidate.id === model)) {
+    throw new Error(`Unsupported Groq transcription model: ${model}`);
   }
 
-  let endpoint = rawBaseUrl.replace(/\/+$/, '');
-  if (/\.stt\.speech\.microsoft\.com$/i.test(endpoint)) {
-    endpoint = endpoint.replace(/\.stt\.speech\.microsoft\.com$/i, '.api.cognitive.microsoft.com');
-  }
-  if (!/\/speechtotext\/transcriptions:transcribe/i.test(endpoint)) {
-    endpoint = `${endpoint}/speechtotext/transcriptions:transcribe`;
-  }
-  const url = new URL(endpoint);
-  if (!url.searchParams.get('api-version')) {
-    url.searchParams.set('api-version', '2025-10-15');
-  }
-
-  let audioBlob: Blob;
-  if (audioBuffer instanceof Blob) {
-    audioBlob = audioBuffer;
-  } else {
-    audioBlob = new Blob([audioBuffer as unknown as BlobPart], { type: 'audio/webm' });
-  }
+  // The API route supplies a File, retaining the recorder's real container type.
+  const audio =
+    audioBuffer instanceof Blob
+      ? audioBuffer
+      : new Blob([new Uint8Array(audioBuffer)], {
+          type: audioBuffer.subarray(0, 4).toString() === 'RIFF' ? 'audio/wav' : 'audio/webm',
+        });
+  if (audio.size === 0) throw new Error('Audio file is empty');
+  if (audio.size > 25 * 1024 * 1024) throw new Error('Groq audio uploads must be 25 MB or smaller');
 
   const formData = new FormData();
-  formData.append('audio', audioBlob, 'recording.webm');
-
-  const localeMap: Record<string, string> = {
-    en: 'en-US',
-    zh: 'zh-CN',
-    ja: 'ja-JP',
-    ko: 'ko-KR',
-    de: 'de-DE',
-    fr: 'fr-FR',
-    es: 'es-ES',
-    it: 'it-IT',
-    pt: 'pt-BR',
-    ru: 'ru-RU',
-    ar: 'ar-SA',
-    hi: 'hi-IN',
-  };
-
+  formData.append('file', audio, getAudioUploadFilename(audio));
+  formData.append('model', model);
+  formData.append('response_format', 'json');
+  formData.append('temperature', '0');
   if (config.language && config.language !== 'auto') {
-    const locale = localeMap[config.language] || config.language;
-    formData.append('definition', JSON.stringify({ locales: [locale] }));
+    formData.append('language', config.language.split(/[-_]/)[0].toLowerCase());
   }
 
-  const response = await fetch(url.toString(), {
+  const baseUrl = (config.baseUrl || provider.defaultBaseUrl!).replace(/\/+$/, '');
+  const response = await fetch(`${baseUrl}/audio/transcriptions`, {
     method: 'POST',
-    headers: { 'Ocp-Apim-Subscription-Key': config.apiKey! },
+    headers: { Authorization: `Bearer ${config.apiKey}` },
     body: formData,
+    signal: AbortSignal.timeout(55_000),
   });
-
   if (!response.ok) {
-    const errorText = await response.text().catch(() => response.statusText);
-    throw new Error(`Azure STT error (${response.status}): ${errorText}`);
+    // Do not attach request objects/headers to errors: they contain the API key.
+    const error = await response.json().catch(() => null);
+    throw new Error(
+      `Groq STT error (${response.status}): ${error?.error?.message || response.statusText}`,
+    );
   }
-
-  const data = (await response.json()) as {
-    combinedPhrases?: Array<{ text?: string }>;
-    phrases?: Array<{ text?: string }>;
-  };
-
-  const combinedText = data.combinedPhrases
-    ?.map((p) => p.text || '')
-    .filter(Boolean)
-    .join(' ');
-  const phraseText = data.phrases
-    ?.map((p) => p.text || '')
-    .filter(Boolean)
-    .join(' ');
-
-  return { text: combinedText || phraseText || '' };
+  const data = await response.json();
+  if (typeof data.text !== 'string') throw new Error('Groq STT returned an invalid transcription');
+  return { text: data.text.trim() };
 }
 
 /**

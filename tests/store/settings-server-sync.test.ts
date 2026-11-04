@@ -58,6 +58,15 @@ vi.mock('@/lib/ai/providers', () => ({
 
 vi.mock('@/lib/audio/constants', () => ({
   TTS_PROVIDERS: {
+    'groq-tts': {
+      id: 'groq-tts',
+      name: 'Groq Orpheus',
+      requiresApiKey: true,
+      defaultModelId: 'canopylabs/orpheus-v1-english',
+      models: [{ id: 'canopylabs/orpheus-v1-english', name: 'Orpheus English' }],
+      voices: [{ id: 'troy', name: 'Troy', language: 'en-US' }],
+      supportedFormats: ['wav'],
+    },
     'azure-tts': {
       id: 'azure-tts',
       name: 'Azure TTS',
@@ -79,9 +88,9 @@ vi.mock('@/lib/audio/constants', () => ({
     },
   },
   ASR_PROVIDERS: {
-    'azure-asr': {
-      id: 'azure-asr',
-      name: 'Azure ASR',
+    'groq-asr': {
+      id: 'groq-asr',
+      name: 'Groq Whisper',
       requiresApiKey: true,
       defaultModelId: '',
       models: [],
@@ -99,6 +108,7 @@ vi.mock('@/lib/audio/constants', () => ({
     },
   },
   DEFAULT_TTS_VOICES: {
+    'groq-tts': 'troy',
     'azure-tts': 'en-US-JennyNeural',
     'browser-native-tts': 'default',
   },
@@ -656,13 +666,109 @@ describe('fetchServerProviders — ASR stale selection', () => {
     return useSettingsStore;
   }
 
+  it('defaults new installs to Groq with automatic language detection', async () => {
+    const store = await getStore();
+    expect(store.getState().ttsProviderId).toBe('groq-tts');
+    expect(store.getState().ttsVoice).toBe('troy');
+    expect(store.getState().asrProviderId).toBe('groq-asr');
+    expect(store.getState().asrLanguage).toBe('auto');
+    expect(store.getState().asrProvidersConfig['groq-asr'].apiKey).toBe('');
+  });
+
+  it.each(['azure-asr', 'browser-native'])(
+    'migrates v5 %s selection without copying Azure secrets',
+    async (providerId) => {
+      storage.set(
+        'settings-storage',
+        JSON.stringify({
+          version: 5,
+          state: {
+            asrProviderId: providerId,
+            asrLanguage: 'en-US',
+            autoConfigApplied: true,
+            ttsProvidersConfig: {},
+            asrProvidersConfig: {
+              'azure-asr': { apiKey: 'obsolete-azure-key', baseUrl: 'https://azure.test' },
+            },
+          },
+        }),
+      );
+      const store = await getStore();
+      expect(store.getState().asrProviderId).toBe('groq-asr');
+      expect(store.getState().asrLanguage).toBe('auto');
+      expect(store.getState().asrProvidersConfig).not.toHaveProperty('azure-asr');
+      expect(store.getState().asrProvidersConfig['groq-asr']).toMatchObject({
+        apiKey: '',
+        baseUrl: '',
+      });
+    },
+  );
+
+  it('preserves browser recognition when explicitly chosen after migration', async () => {
+    storage.set(
+      'settings-storage',
+      JSON.stringify({
+        version: 6,
+        state: { asrProviderId: 'browser-native', asrLanguage: 'en-US' },
+      }),
+    );
+    const store = await getStore();
+    expect(store.getState().asrProviderId).toBe('browser-native');
+    expect(store.getState().asrLanguage).toBe('en-US');
+  });
+
+  it('preserves custom ASR provider choices during migration', async () => {
+    storage.set(
+      'settings-storage',
+      JSON.stringify({
+        version: 5,
+        state: {
+          asrProviderId: 'custom-asr-local',
+          asrLanguage: 'fr',
+          ttsProvidersConfig: {},
+          asrProvidersConfig: {
+            'custom-asr-local': { apiKey: 'custom-key', baseUrl: 'https://local.test' },
+          },
+        },
+      }),
+    );
+    const store = await getStore();
+    expect(store.getState().asrProviderId).toBe('custom-asr-local');
+    expect(store.getState().asrLanguage).toBe('fr');
+  });
+
+  it('migrates the Azure TTS selection and voice to Groq', async () => {
+    storage.set(
+      'settings-storage',
+      JSON.stringify({
+        version: 5,
+        state: {
+          ttsProviderId: 'azure-tts',
+          ttsVoice: 'en-US-JennyNeural',
+          ttsProvidersConfig: {
+            'azure-tts': { apiKey: 'azure-key', baseUrl: 'https://azure.test' },
+          },
+          asrProvidersConfig: {},
+          autoConfigApplied: true,
+        },
+      }),
+    );
+    const store = await getStore();
+    expect(store.getState().ttsProviderId).toBe('groq-tts');
+    expect(store.getState().ttsVoice).toBe('troy');
+    expect(store.getState().ttsProvidersConfig['groq-tts']).toMatchObject({
+      apiKey: '',
+      baseUrl: '',
+    });
+  });
+
   it('falls back to browser-native when selected ASR provider loses server config', async () => {
     const store = await getStore();
 
-    mockServerResponse({ asr: { 'azure-asr': {} } });
+    mockServerResponse({ asr: { 'groq-asr': {} } });
     await store.getState().fetchServerProviders();
-    store.getState().setASRProvider('azure-asr');
-    expect(store.getState().asrProviderId).toBe('azure-asr');
+    store.getState().setASRProvider('groq-asr');
+    expect(store.getState().asrProviderId).toBe('groq-asr');
 
     mockServerResponse({});
     await store.getState().fetchServerProviders();
@@ -673,14 +779,14 @@ describe('fetchServerProviders — ASR stale selection', () => {
   it('keeps ASR provider when it is still server-configured', async () => {
     const store = await getStore();
 
-    mockServerResponse({ asr: { 'azure-asr': {} } });
+    mockServerResponse({ asr: { 'groq-asr': {} } });
     await store.getState().fetchServerProviders();
-    store.getState().setASRProvider('azure-asr');
+    store.getState().setASRProvider('groq-asr');
 
-    mockServerResponse({ asr: { 'azure-asr': {} } });
+    mockServerResponse({ asr: { 'groq-asr': {} } });
     await store.getState().fetchServerProviders();
 
-    expect(store.getState().asrProviderId).toBe('azure-asr');
+    expect(store.getState().asrProviderId).toBe('groq-asr');
   });
 });
 

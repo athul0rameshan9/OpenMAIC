@@ -5,11 +5,12 @@
  * with extensible architecture to support multiple providers.
  *
  * Currently Supported TTS Providers:
+ * - Groq Orpheus (https://console.groq.com/docs/text-to-speech)
  * - Azure TTS (https://learn.microsoft.com/en-us/azure/ai-services/speech-service/text-to-speech)
  * - Browser Native TTS (Web Speech API, client-side only)
  *
  * Currently Supported ASR Providers:
- * - Azure STT (https://learn.microsoft.com/azure/ai-services/speech-service/fast-transcription-create)
+ * - Groq Whisper (https://console.groq.com/docs/speech-to-text)
  * - Browser Native (Web Speech API, client-side only)
  *
  * Users can add custom providers via the Settings UI.
@@ -43,9 +44,7 @@
  * Add new TTS providers here as union members.
  * Keep in sync with TTS_PROVIDERS registry in constants.ts
  */
-export type BuiltInTTSProviderId =
-  | 'azure-tts'
-  | 'browser-native-tts';
+export type BuiltInTTSProviderId = 'azure-tts' | 'groq-tts' | 'browser-native-tts';
 
 export type TTSProviderId = BuiltInTTSProviderId | `custom-tts-${string}`;
 
@@ -109,9 +108,7 @@ export interface TTSModelConfig {
  * Add new ASR providers here as union members.
  * Keep in sync with ASR_PROVIDERS registry in constants.ts
  */
-export type BuiltInASRProviderId =
-  | 'browser-native'
-  | 'azure-asr';
+export type BuiltInASRProviderId = 'browser-native' | 'groq-asr';
 
 export type ASRProviderId = BuiltInASRProviderId | `custom-asr-${string}`;
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { getAudioUploadFilename } from './upload-filename';
+
 function writeAscii(view: DataView, offset: number, value: string): void {
   for (let i = 0; i < value.length; i++) {
     view.setUint8(offset + i, value.charCodeAt(i));
@@ -77,5 +79,5 @@ export async function normalizeASRUploadAudio(
   providerId: string,
   audioBlob: Blob,
 ): Promise<{ blob: Blob; fileName: string }> {
-  return { blob: audioBlob, fileName: 'recording.webm' };
+  return { blob: audioBlob, fileName: getAudioUploadFilename(audioBlob) };
 }

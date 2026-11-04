@@ -395,12 +395,13 @@ function resolveLLMSelection(
 
 // Initialize default audio config
 const getDefaultAudioConfig = () => ({
-  ttsProviderId: 'azure-tts' as TTSProviderId,
-  ttsVoice: 'en-US-JennyNeural',
+  ttsProviderId: 'groq-tts' as TTSProviderId,
+  ttsVoice: 'troy',
   ttsSpeed: 1.0,
-  asrProviderId: 'browser-native' as ASRProviderId,
-  asrLanguage: 'en',
+  asrProviderId: 'groq-asr' as ASRProviderId,
+  asrLanguage: 'auto',
   ttsProvidersConfig: {
+    'groq-tts': { apiKey: '', baseUrl: '', enabled: true },
     'azure-tts': { apiKey: '', baseUrl: '', enabled: true },
     // Browser-native is OFF by default — fully opt-in. Native voice quality is
     // poor; it must never be a silent default (#665).
@@ -411,7 +412,7 @@ const getDefaultAudioConfig = () => ({
   >,
   asrProvidersConfig: {
     'browser-native': { apiKey: '', baseUrl: '', enabled: true },
-    'azure-asr': { apiKey: '', baseUrl: '', enabled: false },
+    'groq-asr': { apiKey: '', baseUrl: '', enabled: true },
   } as Record<ASRProviderId, { apiKey: string; baseUrl: string; enabled: boolean }>,
 });
 
@@ -558,6 +559,8 @@ function ensureBuiltInAudioProviders(state: Partial<SettingsState>): void {
   }
 
   if (state.asrProvidersConfig) {
+    // Azure credentials and endpoints must never carry over to Groq.
+    delete (state.asrProvidersConfig as Record<string, unknown>)['azure-asr'];
     for (const providerId of Object.keys(ASR_PROVIDERS) as ASRProviderId[]) {
       if (!state.asrProvidersConfig[providerId]) {
         state.asrProvidersConfig[providerId] = defaultAudioConfig.asrProvidersConfig[providerId];
@@ -1658,7 +1661,7 @@ export const useSettingsStore = create<SettingsState>()(
     },
     {
       name: 'settings-storage',
-      version: 5,
+      version: 6,
       // Migrate persisted state
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<SettingsState>;
@@ -1692,7 +1695,8 @@ export const useSettingsStore = create<SettingsState>()(
         // Add default audio config if missing
         if (!state.ttsProvidersConfig || !state.asrProvidersConfig) {
           const defaultAudioConfig = getDefaultAudioConfig();
-          Object.assign(state, defaultAudioConfig);
+          state.ttsProvidersConfig ??= defaultAudioConfig.ttsProvidersConfig;
+          state.asrProvidersConfig ??= defaultAudioConfig.asrProvidersConfig;
         }
         ensureBuiltInAudioProviders(state);
         ensureBuiltInWebSearchProviders(state);
@@ -1849,6 +1853,18 @@ export const useSettingsStore = create<SettingsState>()(
         // was zh-CN-XiaoxiaoNeural which produces Chinese-accented English.
         if (version < 5 && state.ttsVoice && /^zh-CN-/.test(state.ttsVoice)) {
           state.ttsVoice = 'en-US-JennyNeural';
+        }
+
+        // v5 → v6: switch the previous Azure voice to Groq after live validation.
+        if (version < 6 && (!state.ttsProviderId || state.ttsProviderId === 'azure-tts')) {
+          state.ttsProviderId = 'groq-tts';
+          state.ttsVoice = 'troy';
+        }
+
+        // v5 → v6: use Groq for microphone input. Keep custom provider choices.
+        if (version < 6 && (!state.asrProviderId || !isCustomASRProvider(state.asrProviderId))) {
+          state.asrProviderId = 'groq-asr';
+          state.asrLanguage = 'auto';
         }
 
         ensureValidProviderSelections(state);

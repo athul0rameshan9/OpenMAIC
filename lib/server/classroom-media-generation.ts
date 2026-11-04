@@ -105,7 +105,12 @@ export async function generateMediaForClassroom(
           buf = await downloadToBuffer(result.url);
           const urlExt = path.extname(new URL(result.url).pathname).replace('.', '');
           ext = ['png', 'jpg', 'jpeg', 'webp'].includes(urlExt) ? urlExt : 'png';
-          const mimeMap: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp' };
+          const mimeMap: Record<string, string> = {
+            png: 'image/png',
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg',
+            webp: 'image/webp',
+          };
           contentType = mimeMap[ext] || 'image/png';
         } else {
           log.warn(`Image generation returned no data for ${req.elementId}`);
@@ -265,7 +270,7 @@ export async function generateTTSForClassroom(
           classroomId,
           `audio/${filename}`,
           audioBuffer,
-          'audio/mpeg',
+          result.format === 'mp3' ? 'audio/mpeg' : `audio/${result.format || format}`,
         );
 
         speechAction.audioId = audioId;

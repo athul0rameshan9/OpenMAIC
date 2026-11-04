@@ -68,6 +68,7 @@ const LLM_ENV_MAP: Record<string, string> = {
 };
 
 const TTS_ENV_MAP: Record<string, string> = {
+  TTS_GROQ: 'groq-tts',
   TTS_AZURE: 'azure-tts',
 };
 
@@ -82,7 +83,7 @@ const TTS_DISABLE_ENV_MAP: Record<string, string> = {
 };
 
 const ASR_ENV_MAP: Record<string, string> = {
-  ASR_AZURE: 'azure-asr',
+  GROQ: 'groq-asr',
 };
 
 const PDF_ENV_MAP: Record<string, string> = {
