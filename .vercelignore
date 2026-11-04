@@ -1,0 +1,16 @@
+.git
+.next
+**/node_modules
+**/.env*
+!.env.example
+.aws
+.agents
+.codex
+server-providers*.yml
+*.pem
+.vercel
+data
+logs
+coverage
+test-results
+playwright-report

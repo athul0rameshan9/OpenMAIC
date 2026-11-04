@@ -1,19 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import enUS from '@/lib/i18n/locales/en-US.json';
-import zhCN from '@/lib/i18n/locales/zh-CN.json';
-import zhTW from '@/lib/i18n/locales/zh-TW.json';
-import jaJP from '@/lib/i18n/locales/ja-JP.json';
-import ruRU from '@/lib/i18n/locales/ru-RU.json';
-import arSA from '@/lib/i18n/locales/ar-SA.json';
+import { readFileSync } from 'node:fs';
+import { supportedLocales } from '@/lib/i18n/locales';
 
-const locales = {
-  'en-US': enUS,
-  'zh-CN': zhCN,
-  'zh-TW': zhTW,
-  'ja-JP': jaJP,
-  'ru-RU': ruRU,
-  'ar-SA': arSA,
-};
+const locales = Object.fromEntries(
+  supportedLocales.map(({ code }) => [
+    code,
+    JSON.parse(
+      readFileSync(new URL(`../../lib/i18n/locales/${code}.json`, import.meta.url), 'utf8'),
+    ),
+  ]),
+);
+
 const KEYS = [
   'edit.delete',
   'edit.text.label',
@@ -40,7 +37,7 @@ const KEYS = [
 const get = (o: any, k: string) => k.split('.').reduce((a, p) => a?.[p], o);
 
 describe('PR2 edit locale coverage', () => {
-  it('every PR2 key exists, non-empty, not echoing the key, in all 6 locales', () => {
+  it('every PR2 key exists, non-empty, not echoing the key, in every supported locale', () => {
     for (const [code, data] of Object.entries(locales)) {
       for (const k of KEYS) {
         const v = get(data, k);

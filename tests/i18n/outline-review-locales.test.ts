@@ -1,23 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import enUS from '@/lib/i18n/locales/en-US.json';
-import zhCN from '@/lib/i18n/locales/zh-CN.json';
-import zhTW from '@/lib/i18n/locales/zh-TW.json';
-import jaJP from '@/lib/i18n/locales/ja-JP.json';
-import ruRU from '@/lib/i18n/locales/ru-RU.json';
-import arSA from '@/lib/i18n/locales/ar-SA.json';
-import koKR from '@/lib/i18n/locales/ko-KR.json';
-import ptBR from '@/lib/i18n/locales/pt-BR.json';
+import { readFileSync } from 'node:fs';
+import { supportedLocales } from '@/lib/i18n/locales';
 
-const locales = {
-  'en-US': enUS,
-  'zh-CN': zhCN,
-  'zh-TW': zhTW,
-  'ja-JP': jaJP,
-  'ru-RU': ruRU,
-  'ar-SA': arSA,
-  'ko-KR': koKR,
-  'pt-BR': ptBR,
-} as const;
+const locales = Object.fromEntries(
+  supportedLocales.map(({ code }) => [
+    code,
+    JSON.parse(
+      readFileSync(new URL(`../../lib/i18n/locales/${code}.json`, import.meta.url), 'utf8'),
+    ),
+  ]),
+);
 
 const outlineReviewKeys = [
   'generation.reviewOutlineTitle',
